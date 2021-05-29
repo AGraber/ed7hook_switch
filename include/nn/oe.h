@@ -12,6 +12,7 @@ namespace nn {
 namespace oe {
     typedef s32 FocusHandlingMode;
     typedef s32 PerformanceMode;
+    typedef s32 CpuBoostMode;
 
     struct DisplayVersion {
         char name[16];

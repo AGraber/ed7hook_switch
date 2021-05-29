@@ -36,6 +36,8 @@ NVN_DEFPROC(nvnQueueGetTotalComputeMemoryUsed);
 NVN_DEFPROC(nvnQueueGetTotalControlMemoryUsed);
 NVN_DEFPROC(nvnQueueSetDebugLabel);
 
+NVN_DEFPROC(nvnSamplerBuilderSetMaxAnisotropy);
+
 void nvnInit(NVNdevice* device) {
     nvnDeviceGetProcAddress =
         reinterpret_cast<PFNC_nvnDeviceGetProcAddress>(nvnBootstrapLoader("nvnDeviceGetProcAddress"));
@@ -73,4 +75,6 @@ void nvnInit(NVNdevice* device) {
     NVN_GETPROCADDR(nvnQueueGetTotalComputeMemoryUsed);
     NVN_GETPROCADDR(nvnQueueGetTotalControlMemoryUsed);
     NVN_GETPROCADDR(nvnQueuePresentTexure);
+
+    NVN_GETPROCADDR(nvnSamplerBuilderSetMaxAnisotropy);
 }

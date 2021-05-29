@@ -1,13 +1,3 @@
-#---------------------------------------------------------------------------------
-# Starlight-specific
-# CROSSVER is the target version of SSBU, but without the decimal points
-# This can be changed by compiling for a different version (e.g. make 600)
-# (used for C defines, filenames, etc)
-# LINKERSCRIPTS is the directory where the function addresses for Splatoon 2 are
-# stored
-# Each script is stored as syms$(CROSSVER).ld
-# (used for mapping SSBU functions to the proper address)
-#---------------------------------------------------------------------------------
 
 LINKERSCRIPTS    := linkerscripts
 
@@ -31,33 +21,34 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 
 # NOTE: TARGET and BUILD are now passed from parent Makefile
-TARGET		?=	$(notdir $(CURDIR))$(CROSSVER)
-BUILD		?=	build$(CROSSVER)
+TARGET		?=	$(notdir $(CURDIR))
+BUILD		?=	build
 SOURCES		:= 	source $(filter-out %.c %.cpp %.s,$(wildcard source/* source/*/* source/*/*/* source/*/*/*/*))
 DATA		:=	data
-INCLUDES	:=	include libs/libeiffel/include
+INCLUDES	:=	include
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIC -ftls-model=local-exec
+ARCH	:=	-march=armv8-a+crc+fp+simd -mtune=cortex-a57 -mtp=soft -fPIC -mcpu=cortex-a57+crc+fp+simd -ftls-model=local-exec
 
-CFLAGS	:=	-g -Wall -ffunction-sections \
+# change to O3 or even Ofast if nothing breaks for final release
+# also try enabling LTO to get max perf
+CFLAGS	:=	-g -Og -Wall -Wno-multichar -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DCROSSVER=$(CROSSVER) 
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 
 ifneq ($(strip $(NOLOG)),)
 CFLAGS	+=	  "-DNOLOG"
 endif
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -enable-libstdcxx-allocator=new -fpermissive 
+CXXFLAGS	:= $(CFLAGS) -std=gnu++17 -fpermissive -fno-rtti -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -enable-libstdcxx-allocator=new -fpermissive 
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS  =  -specs=../switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--version-script=$(TOPDIR)/exported.txt -Wl,-init=__custom_init -Wl,-fini=__custom_fini -Wl,--export-dynamic -nodefaultlibs
+LDFLAGS  =  -specs=../switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map),--version-script=$(TOPDIR)/exported.txt -Wl,-init=__custom_init -Wl,-fini=__custom_fini -Wl,--export-dynamic -nodefaultlibs
 
-
-LIBS	:= -lgcc -lstdc++ -u malloc
+LIBS	:= -lwebp -lgcc -lstdc++ -u malloc
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -72,8 +63,9 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export TOPDIR	:=	$(CURDIR)
+export OUTPUT		:=	$(CURDIR)/$(TARGET)
+export TOPDIR		:=	$(CURDIR)
+export OUTPUTNSO	:=	$(CURDIR)/subsdk9
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -104,7 +96,8 @@ export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+			-I$(CURDIR)/$(BUILD) \
+			-I$(PORTLIBS)/include/freetype2
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
@@ -136,13 +129,12 @@ endif
 all: $(BUILD)
 
 $(BUILD):
+	@echo $(LDFLAGS)
 	@echo "${SOURCES}"
 	@echo "${CPPFILES}"
 	@echo "${CXXFLAGS}"
 	@[ -d $@ ] || mkdir -p $@
-	@cp $(LINKERSCRIPTS)/syms$(CROSSVER).ld $(LINKERSCRIPTS)/symstemp.ld # This is required because you can't pass a variable to the .specs
 	$(MAKE) -C $(BUILD) -f $(CURDIR)/$(MAKE_NSO)
-	@rm -f $(LINKERSCRIPTS)/symstemp.ld
 
 #---------------------------------------------------------------------------------
 clean:
@@ -160,7 +152,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 %.nso: %.elf
-	@elf2nso $< $@
+	elf2nso $< $(OUTPUTNSO)
 	@echo built ... $(notdir $@)
 
 %.nro: %.elf

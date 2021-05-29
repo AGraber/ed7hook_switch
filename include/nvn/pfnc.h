@@ -58,6 +58,9 @@ typedef size_t (*PFNC_nvnQueueGetTotalControlMemoryUsed)(NVNqueue*);
 typedef void (*PFNC_nvnQueueResetMemoryUsageCounts)(NVNqueue*);
 typedef void (*PFNC_nvnQueueSetDebugLabel)(NVNqueue*, char*);
 
+// SAMPLER BUILDER
+typedef void (*PFNC_nvnSamplerBuilderSetMaxAnisotropy)(void *, float);
+
 extern NVN_DEFPROC(nvnDeviceBuilderGetFlags);
 extern NVN_DEFPROC(nvnDeviceBuilderSetDefaults);
 extern NVN_DEFPROC(nvnDeviceBuilderSetFlags);
@@ -93,3 +96,5 @@ extern NVN_DEFPROC(nvnQueueGetTotalCommandMemoryUsed);
 extern NVN_DEFPROC(nvnQueueGetTotalComputeMemoryUsed);
 extern NVN_DEFPROC(nvnQueueGetTotalControlMemoryUsed);
 extern NVN_DEFPROC(nvnQueueSetDebugLabel);
+
+extern NVN_DEFPROC(nvnSamplerBuilderSetMaxAnisotropy);

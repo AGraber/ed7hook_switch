@@ -7,7 +7,7 @@ nn::fs::FileHandle fileHandle;
 s64 offset;
 
 SdLogger::SdLogger(std::string path) {
-    nn::fs::DirectoryEntryType type;
+    /*nn::fs::DirectoryEntryType type;
     Result rc = nn::fs::GetEntryType(&type, path.c_str());
 
     if (rc == 0x202) {  // Path does not exist
@@ -17,7 +17,7 @@ SdLogger::SdLogger(std::string path) {
 
     if (type == nn::fs::DirectoryEntryType_Directory) return;
 
-    R_ERRORONFAIL(nn::fs::OpenFile(&fileHandle, path.c_str(), nn::fs::OpenMode_ReadWrite | nn::fs::OpenMode_Append));
+    R_ERRORONFAIL(nn::fs::OpenFile(&fileHandle, path.c_str(), nn::fs::OpenMode_ReadWrite | nn::fs::OpenMode_Append));*/
 }
 
 void SdLogger::Initialize() {
