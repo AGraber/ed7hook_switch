@@ -65,8 +65,26 @@ int64_t (LoadMap_hook)(int64_t a1, int64_t a2)
     return ret;
 }
 
+
+// Attempt to set anisotropic filtering to 16.0 always
+void (*nvnSamplerBuilderSetMaxAnisotropy_original)(intptr_t sampleBuilder, float anisotropyLevel);
+void nvnSamplerBuilderSetMaxAnisotropy_hook(intptr_t sampleBuilder, float anisotropyLevel)
+{
+    nvnSamplerBuilderSetMaxAnisotropy_original(sampleBuilder, 16.0);
+}
+
+void (*nvnLoadCProcs_original)(intptr_t device, intptr_t nvnDeviceGetProcAddress);
+void nvnLoadCProcs_hook(intptr_t device, intptr_t nvnDeviceGetProcAddress)
+{
+    nvnLoadCProcs_original(device, nvnDeviceGetProcAddress);
+
+    *(void**)&nvnSamplerBuilderSetMaxAnisotropy_original = *(void**)ED7Pointers.pfnc_nvnSamplerBuilderSetMaxAnisotropy;
+    *(void**)ED7Pointers.pfnc_nvnSamplerBuilderSetMaxAnisotropy = (void*)nvnSamplerBuilderSetMaxAnisotropy_hook;
+}
+
 void ED7MiscPatchesInitialize()
 {
+    MAKE_HOOK(nvnLoadCProcs);
     MAKE_HOOK(LoadBattle);
     MAKE_HOOK(LoadBattle2);
     MAKE_HOOK(LoadBattle3);

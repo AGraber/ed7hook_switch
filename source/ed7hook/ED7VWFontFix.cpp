@@ -130,6 +130,10 @@ short GetWidthForDialogBoxContents(CMessageWindow *_this, const char* text, floa
                 continue;
             }
 
+            case 0x06: // not quite sure what this is
+                ++text;
+                continue;
+
             case 0x07: // Change color
                 text += 2;
                 continue;
@@ -336,6 +340,79 @@ float BookGetFontWidth_hook(int64_t a1, int64_t iFontType)
     return result;
 }
 
+void (*SaveListFontRender_original)(int64_t *this_, const char *pszText, int color, float posX, float posY, float fUnknown, float fUnknown2, float fUnknown3, float fUnknown4);
+void SaveListFontRender_hook(int64_t *this_, const char *pszText, int color, float posX, float posY, float fUnknown, float fUnknown2, float fUnknown3, float fUnknown4)
+{
+    if(__builtin_return_address(0) == ED7Pointers.SaveListFontRender_ReturnAfterDescription)
+    {
+        // Align save description text to the right to prevent overflow
+        auto pszTextLoop = pszText;
+        float fCorrectedWidth = 800.0;
+        constexpr float fFontWidth = 24.0;
+        while(char character = *pszTextLoop++)
+        {
+            if(IsSJISCharMultibyte(character))
+            {
+                fCorrectedWidth -= pMultibyteAdvance[character][*pszTextLoop++] * 24.0;
+            }
+            else
+            {
+                fCorrectedWidth -= pFontAdvanceTable[character] * 24.0;
+            }
+        }
+
+        SaveListFontRender_original(this_, pszText, color, fCorrectedWidth, posY, fUnknown, fUnknown2, fUnknown3, fUnknown4);
+    }
+    else
+    {
+        SaveListFontRender_original(this_, pszText, color, posX, posY, fUnknown, fUnknown2, fUnknown3, fUnknown4);
+    }
+}
+
+int64_t (*NotebookDrawText_original)(int64_t *a1, const char *pszText, int a3, float fOffsetX, float fOffsetY, float a6, float a7);
+int64_t NotebookDrawText_hook(int64_t *a1, const char *pszText, int a3, float fOffsetX, float fOffsetY, float a6, float a7)
+{
+    void* return_address = __builtin_return_address(0); // lmao
+    if(return_address == ED7Pointers.NotebookDrawText_ReturnAfterMonstElemQuestionMark)
+    {
+        return NotebookDrawText_original(a1, pszText, a3, fOffsetX + 20.0, fOffsetY, a6, a7);
+    }
+    if(return_address == ED7Pointers.NotebookDrawText_ReturnAfterCompletedRequestsStr)
+    {
+        return NotebookDrawText_original(a1, pszText, a3, fOffsetX - 14.5, fOffsetY, a6, a7);
+    }
+    return NotebookDrawText_original(a1, pszText, a3, fOffsetX, fOffsetY, a6, a7);
+}
+
+int64_t (*NotebookElementBarDraw_original)(int64_t result, unsigned int a2, int a3, int a4, int a5, int a6, unsigned int iColor, unsigned int a8, float a9, float a10, float a11, float a12, float a13);
+int64_t NotebookElementBarDraw_hook(int64_t result, unsigned int a2, int a3, int a4, int a5, int a6, unsigned int iColor, unsigned int a8, float a9, float a10, float a11, float a12, float a13)
+{
+    void* retAddr = __builtin_return_address(0);
+    if(retAddr == ED7Pointers.NotebookElementBarDraw_ReturnBackground)
+    {
+        NotebookElementBarDraw_original(result, a2, a3, a4 + 11, a5, 5, iColor, a8, a9, 0.75 - (5.0 / 256.0), a11, a12, a13);
+        return NotebookElementBarDraw_original(result, a2, a3 + 47 + 20, a4, 160 - 47 - 20, 16 - 5, iColor, a8, (47.0 / 256.0) + 0.25, a10, a11, 0.75 - (5.0 / 256.0), a13);
+    }
+    else if(retAddr == ED7Pointers.NotebookElementBarDraw_ReturnBar)
+    {
+        register unsigned int w28 asm("w28"); // lmfao
+
+        unsigned int width = w28;
+        return NotebookElementBarDraw_original(result, a2, a3 + 20, a4, width * 0.445, a6, iColor, a8, a9, a10, a11, a12, a13);
+    }
+    return NotebookElementBarDraw_original(result, a2, a3, a4, a5, a6, iColor, a8, a9, a10, a11, a12, a13);
+}
+
+int64_t (*NotebookDrawNumberRightAligned_original)(int64_t *a1, int a2, int a3, unsigned int a4, int a5, float a6, float a7, int64_t a8, int a9);
+int64_t NotebookDrawNumberRightAligned_hook(int64_t *a1, int a2, int a3, unsigned int a4, int a5, float a6, float a7, int64_t a8, int a9)
+{
+    if(__builtin_return_address(0) == ED7Pointers.NotebookDrawNumberRightAligned_ReturnAfterElemEff)
+    {
+        return NotebookDrawNumberRightAligned_original(a1, a2 + 20, a3, a4, a5, a6, a7, a8, a9);
+    }
+    return NotebookDrawNumberRightAligned_original(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
 void ED7VWFontFixInitialize()
 {
     *(void**)&GetItemName = ED7Pointers.GetItemName;
@@ -353,6 +430,10 @@ void ED7VWFontFixInitialize()
     MAKE_HOOK(BookIsKana);
     MAKE_HOOK(BookGetFontWidth);
     MAKE_HOOK(CMessageWindow__AnonymousText);
+    MAKE_HOOK(SaveListFontRender);
+    MAKE_HOOK(NotebookDrawText);
+    MAKE_HOOK(NotebookElementBarDraw);
+    MAKE_HOOK(NotebookDrawNumberRightAligned);
 
     // Removes space check messing up font rendering on notebook
     skyline::inlinehook::ControlledPages control( (void*)(ED7Pointers.NotebookSpaceCheckJump), 1 * sizeof(short));
@@ -362,10 +443,13 @@ void ED7VWFontFixInitialize()
 
     static constexpr unsigned char SpaceCheckInstructionReplace_w8[4] = {0x1F, 0x01, 0x00, 0x71}; // cmp w8, #0x00
 
+    static constexpr unsigned char BattleTutorialSBreakBlockedOffsetX[4] = {0x94, 0x16, 0x80, 0x52}; // mov w20, #180
+    static constexpr unsigned char BattleTutorialSBreakBlockedOffsetY[4] = {0x95, 0x03, 0x80, 0x52}; // mov w21, #28
+
     // Invalidate space check that changes spaces width to another value
-    sky_memcpy(
-        ED7Pointers.FontRendererSpaceCheck,
-        SpaceCheckInstructionReplace_w8,
-        4
-    );
+    sky_memcpy(ED7Pointers.FontRendererSpaceCheck, SpaceCheckInstructionReplace_w8, 4);
+
+    // Change instructions that load X/Y values for tutorial icons in registers
+    sky_memcpy(ED7Pointers.BattleTutorialSBreakBlockedOffsetX, BattleTutorialSBreakBlockedOffsetX, 4);
+    sky_memcpy(ED7Pointers.BattleTutorialSBreakBlockedOffsetY, BattleTutorialSBreakBlockedOffsetY, 4);
 }

@@ -15,7 +15,7 @@ bool ED7PointersInitialize()
     ED7Pointers.TextRegionOffset = TextRegionOffset;
     switch(startup_address)
     {
-        case 0x5f010: // Zero 1.0
+        case 0x5f010: // Zero 1.0 - not supported anymore - left for reference
             ED7Pointers.GameName = "Trails from Zero 1.0.0";
             ED7Pointers.IsZero = true;
 
@@ -67,6 +67,8 @@ bool ED7PointersInitialize()
             ED7Pointers.iCurrentLanguage1 = EXE_PTR(0x44D5A8);
             ED7Pointers.iCurrentLanguage2 = EXE_PTR(0x44D9AC);
 
+            ED7Pointers.SaveListFontRender = EXE_PTR(0x4D070);
+
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x338DB3);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x2F651C);
             ED7Pointers.String_EXP = EXE_PTR(0x2FDC26);
@@ -74,6 +76,9 @@ bool ED7PointersInitialize()
             ED7Pointers.String_Item = EXE_PTR(0x32CAAC);
             ED7Pointers.String_Support_Member = EXE_PTR(0x2FDC95);
             ED7Pointers.String_Attack_Member = EXE_PTR(0x32CACC);
+
+            ED7Pointers.nvnLoadCProcs = EXE_PTR(0x210B60);
+            ED7Pointers.pfnc_nvnSamplerBuilderSetMaxAnisotropy = EXE_PTR(0x5609EF30);
 
             // Optional/Unused
             ED7Pointers.CNode__Load = EXE_PTR(0x17640);
@@ -136,6 +141,23 @@ bool ED7PointersInitialize()
             ED7Pointers.iCurrentLanguage1 = EXE_PTR(0x44E5A8);
             ED7Pointers.iCurrentLanguage2 = EXE_PTR(0x44E9AC);
 
+            ED7Pointers.SaveListFontRender = EXE_PTR(0x4D070);
+            ED7Pointers.SaveListFontRender_ReturnAfterDescription = EXE_PTR(0x4D57C);
+
+            ED7Pointers.NotebookDrawText = EXE_PTR(0x1812A0);
+            ED7Pointers.NotebookDrawText_ReturnAfterMonstElemQuestionMark = EXE_PTR(0x18DC90);
+            ED7Pointers.NotebookDrawText_ReturnAfterCompletedRequestsStr = EXE_PTR(0x1984F0);
+
+            ED7Pointers.NotebookElementBarDraw = EXE_PTR(0x129E80);
+            ED7Pointers.NotebookElementBarDraw_ReturnBackground = EXE_PTR(0x18DB94);
+            ED7Pointers.NotebookElementBarDraw_ReturnBar = EXE_PTR(0x18DC38);
+
+            ED7Pointers.NotebookDrawNumberRightAligned = EXE_PTR(0x182150);
+            ED7Pointers.NotebookDrawNumberRightAligned_ReturnAfterElemEff = EXE_PTR(0x18DC68);
+
+            ED7Pointers.BattleTutorialSBreakBlockedOffsetX = EXE_PTR(0xDD9C8);
+            ED7Pointers.BattleTutorialSBreakBlockedOffsetY = EXE_PTR(0xDD9E4);
+
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x339E02);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x2F7532);
             ED7Pointers.String_EXP = EXE_PTR(0x02FEC3C);
@@ -143,6 +165,9 @@ bool ED7PointersInitialize()
             ED7Pointers.String_Item = EXE_PTR(0x32DB33);
             ED7Pointers.String_Support_Member = EXE_PTR(0x2FECAB);
             ED7Pointers.String_Attack_Member = EXE_PTR(0x32DB53);
+
+            ED7Pointers.nvnLoadCProcs = EXE_PTR(0x210EA0);
+            ED7Pointers.pfnc_nvnSamplerBuilderSetMaxAnisotropy = EXE_PTR(0x5609FF30);
 
             // Optional/Unused
             ED7Pointers.CNode__Load = EXE_PTR(0x17640);

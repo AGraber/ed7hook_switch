@@ -78,6 +78,28 @@ struct ED7Pointers_Struct
     void* iCurrentLanguage1;
     void* iCurrentLanguage2;
 
+    // Offset save description to fit font
+    void* SaveListFontRender;
+    void* SaveListFontRender_ReturnAfterDescription;
+
+    // Change offsets of notebook text drawing
+    void* NotebookDrawText;
+    void* NotebookDrawText_ReturnAfterMonstElemQuestionMark;
+    void* NotebookDrawText_ReturnAfterCompletedRequestsStr;
+
+    // Alternative design of elemental efficiency bar to fit English text
+    void* NotebookElementBarDraw;
+    void* NotebookElementBarDraw_ReturnBackground;
+    void* NotebookElementBarDraw_ReturnBar;
+
+    // Change offsets of notebook text drawing for numbers
+    void* NotebookDrawNumberRightAligned;
+    void* NotebookDrawNumberRightAligned_ReturnAfterElemEff;
+
+    // Change instructions to change X/Y values of tutorial icon
+    void* BattleTutorialSBreakBlockedOffsetX;
+    void* BattleTutorialSBreakBlockedOffsetY;
+
     // Faster string comparison through constant address
     void* String_PlayTime1; // "%3d:%2d:%2d"
     void* String_PlayTime2; // "PlayTime %2d:%2d:%2d\n"
@@ -86,6 +108,10 @@ struct ED7Pointers_Struct
     void* String_Item; // "Item:""
     void* String_Support_Member; // "Support Member"
     void* String_Attack_Member; // "Attack Member"
+
+    // nvn patches
+    void* nvnLoadCProcs;
+    void* pfnc_nvnSamplerBuilderSetMaxAnisotropy;
 
     // These are not used anymore, but are left for reference
     // I used to have them for debugging/dumping purposes
