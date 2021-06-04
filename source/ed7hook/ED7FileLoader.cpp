@@ -2,8 +2,9 @@
 #include "skyline/inlinehook/And64InlineHook.hpp"
 #include "ed7hook/ED7Main.hpp"
 #include "ed7hook/ED7Debug.hpp"
+#include "ed7hook/ED7Pointers.hpp"
 #include "ed7hook/ED7FileLoader.hpp"
-
+#include "skyline/inlinehook/memcpy_controlled.hpp"
 
 static char pathBufferEnglish[512] = "rom:/data_en/";
 static char pathBufferJapanese[512] = "rom:/data/";
@@ -94,4 +95,8 @@ void ED7FileLoaderInitialize()
         nn__fs__OpenFile_ptr,
         (void**)&nn__fs__OpenFile_original
     );
+
+    // Skip file name check in some instances
+    static constexpr unsigned char SkipFileNameCheck[4] = {0x08, 0x00, 0x00, 0x14}; // cmp w8, #0x00
+    sky_memcpy(ED7Pointers.CSafeFileBase__open_FileNameCheck, SkipFileNameCheck, 4);
 }

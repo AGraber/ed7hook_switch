@@ -19,9 +19,6 @@ bool ED7PointersInitialize()
             ED7Pointers.GameName = "Trails from Zero 1.0.0";
             ED7Pointers.IsZero = true;
 
-            ED7Pointers.LateInit = EXE_PTR(0x5E9E0);
-
-            ED7Pointers.CTexMgr__Load = EXE_PTR(0x7850);
             ED7Pointers.CTexMgr__Load2 = EXE_PTR(0x7370);
             ED7Pointers.CTexBase__LoadITP_chunk_IDAT = EXE_PTR(0x62C40);
             
@@ -35,10 +32,10 @@ bool ED7PointersInitialize()
 
             ED7Pointers.CED6Window__SetText = EXE_PTR(0x17FD80);
 
-            ED7Pointers.CSafeFile__fopen = EXE_PTR(0x3A5E0);
             ED7Pointers.CSafeFile__CSafeFile = EXE_PTR(0x3C120);
-            ED7Pointers.CSafeFile__fclose = EXE_PTR(0x3BAE0);
             ED7Pointers.CSafeFileBase__destructor = EXE_PTR(0x41340);
+            ED7Pointers.CSafeFile__fopen = EXE_PTR(0x3A5E0);
+            ED7Pointers.CSafeFile__fclose = EXE_PTR(0x3BAE0);
 
             ED7Pointers.CFontMgr2__GetSizeSJIS = EXE_PTR(0x43EA0);
             ED7Pointers.CFontMgr2__SetFixMode = EXE_PTR(0x43B00);
@@ -82,22 +79,22 @@ bool ED7PointersInitialize()
 
             // Optional/Unused
             ED7Pointers.CNode__Load = EXE_PTR(0x17640);
+            ED7Pointers.CTexMgr__Load = EXE_PTR(0x7850);
             ED7Pointers.CTexMgr__UnLoad = EXE_PTR(0x1C50);
             ED7Pointers.CMessageWindow__PrintText2 = EXE_PTR(0xFA0E0);
             ED7Pointers.CSafeFile__fseek = EXE_PTR(0x3C1C0);
             ED7Pointers.CFontMgr2__DrawFontSJIS = EXE_PTR(0x46B70);
             ED7Pointers.GetLanguageForLanguageCode = EXE_PTR(0x5F480);
+            ED7Pointers.LateInit = EXE_PTR(0x5E9E0);
             break;
 
         case 0x5f020: // Zero 1.0.1
             ED7Pointers.GameName = "Trails from Zero 1.0.1";
             ED7Pointers.IsZero = true;
 
-            ED7Pointers.LateInit = EXE_PTR(0x5E9F0);
-
-            ED7Pointers.CTexMgr__Load = EXE_PTR(0x7850);
             ED7Pointers.CTexMgr__Load2 = EXE_PTR(0x7370);
             ED7Pointers.CTexBase__LoadITP_chunk_IDAT = EXE_PTR(0x62C50);
+            ED7Pointers.CTexMgr__LoadITP = EXE_PTR(0x64600);
 
             ED7Pointers.TranslationArray = EXE_PTR(0x3DD570);
 
@@ -109,10 +106,21 @@ bool ED7PointersInitialize()
 
             ED7Pointers.CED6Window__SetText = EXE_PTR(0x17FDB0);
 
-            ED7Pointers.CSafeFile__fopen = EXE_PTR(0x3A5E0);
             ED7Pointers.CSafeFile__CSafeFile = EXE_PTR(0x3C120);
-            ED7Pointers.CSafeFile__fclose = EXE_PTR(0x3BAE0);
             ED7Pointers.CSafeFileBase__destructor = EXE_PTR(0x41340);
+            ED7Pointers.CSafeFile__fopen = EXE_PTR(0x3A5E0);
+            ED7Pointers.CSafeFile__fclose = EXE_PTR(0x3BAE0);
+            ED7Pointers.CSafeFile__fread = EXE_PTR(0x3B7A0);
+            ED7Pointers.CSafeFile__fseek = EXE_PTR(0x3C1C0);
+            ED7Pointers.CSafeFile__ftel = EXE_PTR(0x3CB10);
+            ED7Pointers.CSafeFile__CheckOnMem = EXE_PTR(0x3CA30);
+            ED7Pointers.CSafeFile__GetSize = EXE_PTR(0x3CA70);
+            ED7Pointers.CSafeFile__LoadCCMem = EXE_PTR(0x3EE40);
+            ED7Pointers.CSafeFile__Init = EXE_PTR(0x3FE80);
+
+            ED7Pointers.CSafeFileBase__open_FileNameCheck = EXE_PTR(0x415B8);
+
+            ED7Pointers.CPU__NewBack = EXE_PTR(0x357C0);
 
             ED7Pointers.CFontMgr2__GetSizeSJIS = EXE_PTR(0x43EA0);
             ED7Pointers.CFontMgr2__SetFixMode = EXE_PTR(0x43B00);
@@ -171,12 +179,13 @@ bool ED7PointersInitialize()
 
             // Optional/Unused
             ED7Pointers.CNode__Load = EXE_PTR(0x17640);
+            ED7Pointers.CTexMgr__Load = EXE_PTR(0x7850);
             ED7Pointers.CTexMgr__UnLoad = EXE_PTR(0x1C50);
-            ED7Pointers.CSafeFile__fseek = EXE_PTR(0x3C1C0);
             ED7Pointers.CFontMgr2__DrawFontSJIS = EXE_PTR(0x46B70);
             ED7Pointers.CFontMgr2__GetSizeMOJICODE = EXE_PTR(0x43BE0);
             ED7Pointers.CFontMgr2__ConvertUTF8toMOJICODE = EXE_PTR(0x443F0);
             ED7Pointers.GetLanguageForLanguageCode = EXE_PTR(0x5F490);
+            ED7Pointers.LateInit = EXE_PTR(0x5E9F0);
             break;
 
         // Azure is still unfinished

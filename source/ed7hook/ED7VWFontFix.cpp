@@ -54,7 +54,7 @@ inline bool IsSJISCharMultibyte(unsigned char character)
 // to return garbage for these.
 void InitializeFontData(int64_t* this_)
 {
-    for(int i = 32; i < 256; ++i) {
+    for(char i = 32; i < 256; ++i) {
         if(IsSJISCharMultibyte(i)) {
             continue;
         }
@@ -64,9 +64,9 @@ void InitializeFontData(int64_t* this_)
     }
 
     // get from 0x81 to 0x9F
-    for(int i = 0x81; i <= 0x9F; ++i)
+    for(char i = 0x81; i <= 0x9F; ++i)
     {
-        for(int j = 0; j <= 0xFF; ++j)
+        for(char j = 0; j <= 0xFF; ++j)
         {
             char szTextForCharacterWidth[3] = {i, j, 0};
             pMultibyteAdvance[i][j] = CFontMgr2__GetSizeSJIS(this_, szTextForCharacterWidth, 1.0, NULL, NULL, NULL, 1.0);
@@ -74,9 +74,9 @@ void InitializeFontData(int64_t* this_)
     }
 
     // get from 0xE0 to 0xEF
-    for(int i = 0xE0; i <= 0xEF; ++i)
+    for(char i = 0xE0; i <= 0xEF; ++i)
     {
-        for(int j = 0; j <= 0xFF; ++j)
+        for(char j = 0; j <= 0xFF; ++j)
         {
             char szTextForCharacterWidth[3] = {i, j, 0};
             pMultibyteAdvance[i][j] = CFontMgr2__GetSizeSJIS(this_, szTextForCharacterWidth, 1.0, NULL, NULL, NULL, 1.0);
@@ -353,11 +353,11 @@ void SaveListFontRender_hook(int64_t *this_, const char *pszText, int color, flo
         {
             if(IsSJISCharMultibyte(character))
             {
-                fCorrectedWidth -= pMultibyteAdvance[character][*pszTextLoop++] * 24.0;
+                fCorrectedWidth -= pMultibyteAdvance[character][*pszTextLoop++] * fFontWidth;
             }
             else
             {
-                fCorrectedWidth -= pFontAdvanceTable[character] * 24.0;
+                fCorrectedWidth -= pFontAdvanceTable[character] * fFontWidth;
             }
         }
 

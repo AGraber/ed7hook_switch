@@ -46,16 +46,45 @@ enum TextureType
     Webp,
 };
 
-static bool InterceptOpenFile = false; // Decides whether we should intercept the call
-static bool OpenFileIsRetrying = false; // Tells if this is a retry of OpenFile
+static bool AlreadyHookingIT3 = false; // Don't process ITPLoad hook if already hooked by CTexMgr::Load2
 
 static unsigned char StaticFileBuffer[2048 * 2048]; // Buffer for loading files into
 static size_t StaticFileBufferSize;
 static TextureType StaticTextureType = TextureType::Unknown;
 
+// CSafeFile constructor
 static void (*CSafeFile__CSafeFile)(CSafeFile* this_);
-static void (*CSafeFile__fclose)(CSafeFile* this_);
+
+// CSafeFile destructor
 static void (*CSafeFileBase__destructor)(CSafeFile* this_);
+
+// Open file
+static int64_t (*CSafeFile__fopen)(CSafeFile *_this, const char *fileName, const char *mode, unsigned int a4, unsigned int a5, int64_t a6, unsigned int a7);
+
+// Close a file
+static void (*CSafeFile__fclose)(CSafeFile* this_);
+
+// Read file contents
+static void (*CSafeFile__fread)(CSafeFile* pSafeFile, void* pBuffer, long size, long count, int unk1, int unk2);
+
+// Seek through the file - identical to POSIX fseek
+static int64_t (*CSafeFile__fseek)(CSafeFile* pSafeFile, long offset, int origin);
+
+// Get current position
+static int64_t (*CSafeFile__ftel)(CSafeFile* pSafeFile);
+
+// Check if a file has been cached on memory
+static int64_t (*CSafeFile__CheckOnMem)(CSafeFile* pSafeFile);
+
+// Get a file's size
+static int64_t (*CSafeFile__GetSize)(CSafeFile* pSafeFile);
+
+// Cache a file's contents on memory through its path and a provided buffer
+// The buffer will be freed by the engine's file system eventually
+static int64_t (*CSafeFile__LoadCCMem)(const char *pPath, void* pContentsBuffer, int iSize, char a4);
+
+// Allocate memory using the game's memory allocator
+static void* (*CPU__NewBack)(ulong iBytes, const char *pszMemLabel);
 
 // Returns TextureType for a file header
 static inline TextureType GetTextureTypeByHeader(unsigned int iHeader)
@@ -148,118 +177,100 @@ static bool InitCustomTextureFromFileName(char* pszFileName, unsigned char* pFil
     nn::fs::ReadFile(handle, 0, pFileBuffer, iFileSize);
     nn::fs::CloseFile(handle);
 
-    TextureType texType = GetTextureTypeByHeader(*(unsigned int*)pFileBuffer);
-    if(texType == TextureType::Unknown)
+    TextureType eTexType = GetTextureTypeByHeader(*(unsigned int*)pFileBuffer);
+    if(eTexType == TextureType::Unknown)
     {
         return false;
     }
 
-    GetCustomTextureDimensions(pFileBuffer, iFileSize, texType, piOutWidth, piOutHeight);
+    GetCustomTextureDimensions(pFileBuffer, iFileSize, eTexType, piOutWidth, piOutHeight);
 
-    StaticTextureType = texType;
+    StaticTextureType = eTexType;
     StaticFileBufferSize = iFileSize;
     return true;
 }
 
-// Intercept file-based texture loading and signal other hooks through variables.
-static int (*CTexMgr__Load_original)(int64_t a1, const char *pszFileName, int64_t a3, int64_t a4, unsigned int a5, unsigned int a6);
-static int CTexMgr__Load_hook(int64_t a1, const char *pszFileName, int64_t a3, int64_t a4, unsigned int a5, unsigned int a6)
+// Get a cached in memory file from the engine
+CSafeFile* GetCachedFile(const char* pszPath)
 {
-    // Sometimes the game will try to load textures that has cached
-    // in memory. We will only intercept them if this is an actual
-    // file in the romfs
+    CSafeFile* pSafeFile = new CSafeFile;
+    CSafeFile__CSafeFile(pSafeFile);
 
-    if(
-        strncmp(pszFileName, "rom:/data", 9) != 0 ||
-        ( (pszFileName[9] != '/' || strchr(pszFileName + 10, '/') == NULL) &&
-        (pszFileName[10] != 't' || pszFileName[10] != 'k' || strchr(pszFileName + 13, '/') == NULL) )
-    )
+    CSafeFile__fopen(pSafeFile, pszPath, "rb", 0, 0, 0, 0);
+    if(!CSafeFile__CheckOnMem(pSafeFile))
     {
-        int ret = CTexMgr__Load_original(a1, pszFileName, a3, a4, a5, a6);
-        return ret;
+        int64_t iFileSize = CSafeFile__GetSize(pSafeFile);
+        void* pBuffer = CPU__NewBack(iFileSize, "ed7hk_itp");
+        CSafeFile__fread(pSafeFile, pBuffer, iFileSize, 1, 0, 0);
+        CSafeFile__fclose(pSafeFile);
+
+        CSafeFile__LoadCCMem(pszPath, pBuffer, iFileSize, 1);
+        CSafeFile__fopen(pSafeFile, pszPath, "rb", 0, 0, 0, 0);
     }
 
-    InterceptOpenFile = true;
-    OpenFileIsRetrying = false;
+    return pSafeFile;
+}
 
-    int ret = CTexMgr__Load_original(a1, pszFileName, a3, a4, a5, a6);
+int64_t (*CTexMgr__LoadITP_original)(unsigned int *this_, unsigned int iTextureId, CSafeFile *pFile, int64_t a4, int64_t a5, int64_t a6, unsigned int itpPixelFormatType);
+int64_t CTexMgr__LoadITP_hook(unsigned int *this_, unsigned int iTextureId, CSafeFile *pFile, int64_t a4, int64_t a5, int64_t a6, unsigned int itpPixelFormatType)
+{
+    if(AlreadyHookingIT3)
+    {
+        return CTexMgr__LoadITP_original(this_, iTextureId, pFile, a4, a5, a6, itpPixelFormatType);
+    }
 
-    InterceptOpenFile = false;
-    OpenFileIsRetrying = false;
+    int64_t iPreviousOffset = CSafeFile__ftel(pFile);
+
+    unsigned char bHeader[4];
+    CSafeFile__fread(pFile, bHeader, 4, 1, 0, 0);
+
+    TextureType eTexType = GetTextureTypeByHeader(*(unsigned int*)bHeader);
+    if(eTexType == TextureType::Unknown)
+    {
+        CSafeFile__fseek(pFile, iPreviousOffset, SEEK_SET);
+        return CTexMgr__LoadITP_original(this_, iTextureId, pFile, a4, a5, a6, itpPixelFormatType);
+    }
+
+    CSafeFile__fseek(pFile, iPreviousOffset, SEEK_SET);
+    int64_t iFileSize = CSafeFile__GetSize(pFile);
+    CSafeFile__fread(pFile, StaticFileBuffer, iFileSize, 1, 0, 0);
+
+    int pixel_width, pixel_height;
+    if(!GetCustomTextureDimensions(StaticFileBuffer, iFileSize, eTexType, &pixel_width, &pixel_height))
+    {
+        CSafeFile__fseek(pFile, iPreviousOffset, SEEK_SET);
+        return CTexMgr__LoadITP_original(this_, iTextureId, pFile, a4, a5, a6, itpPixelFormatType);
+    }
+
+    char filename_buffer[32] = "pom:/data_patch/";
+    stbsp_sprintf(&filename_buffer[16], "%dx%d.itp", pixel_width, pixel_height);
+    CSafeFile* pDummyFile = GetCachedFile(filename_buffer);
+
+    StaticTextureType = eTexType;
+    StaticFileBufferSize = iFileSize;
+
+    auto ret = CTexMgr__LoadITP_original(this_, iTextureId, pDummyFile, a4, a5, a6, itpPixelFormatType);
+
+    CSafeFile__fclose(pDummyFile);
+    CSafeFileBase__destructor(pDummyFile);
+    delete pDummyFile;
+
     StaticTextureType = TextureType::Unknown;
 
     return ret;
-}
-
-// Intercept file loading with our own files.
-static int64_t (*CSafeFile__fopen_original)(CSafeFile *_this, char *fileName, char *mode, unsigned int a4, unsigned int a5, int64_t a6, unsigned int a7);
-static int64_t CSafeFile__fopen_hook(CSafeFile *_this, char *fileName, char *mode, unsigned int a4, unsigned int a5, int64_t a6, unsigned int a7)
-{
-    if(InterceptOpenFile)
-    {
-        nn::fs::FileHandle handle;
-        if(R_FAILED(nn::fs::OpenFile(&handle, fileName, nn::fs::OpenMode_Read))) {
-            if(OpenFileIsRetrying)
-            {
-                InterceptOpenFile = false;
-            }
-            else
-            {
-                OpenFileIsRetrying = true;
-            }
-            return 0;
-        } else {
-            unsigned char header[4]; 
-            nn::fs::ReadFile(handle, 0, header, 4);
-
-            TextureType texType = GetTextureTypeByHeader(*(unsigned int*)header);
-            if(texType == TextureType::Unknown)
-            {
-                nn::fs::CloseFile(handle);
-                InterceptOpenFile = false;
-                OpenFileIsRetrying = false;
-                return CSafeFile__fopen_original(_this, fileName, mode, a4, a5, a6, a7);
-            }
-            
-
-            size_t iFileSize;
-            nn::fs::GetFileSize((s64*)&iFileSize, handle);
-            nn::fs::ReadFile(handle, 0, StaticFileBuffer, iFileSize);
-            nn::fs::CloseFile(handle);
-
-            int pixel_width, pixel_height;
-            if(!GetCustomTextureDimensions(StaticFileBuffer, iFileSize, texType, &pixel_width, &pixel_height))
-            {
-                InterceptOpenFile = false;
-                OpenFileIsRetrying = false;
-                return CSafeFile__fopen_original(_this, fileName, mode, a4, a5, a6, a7);
-            }
-
-            StaticTextureType = texType;
-            StaticFileBufferSize = iFileSize;
-
-            // Use a dummy itp texture with desired resolution
-            // to replace the BGRA buffer of it.
-            char filename_buffer[32] = "pom:/data_patch/";
-            stbsp_sprintf(&filename_buffer[16], "%dx%d.itp", pixel_width, pixel_height);
-            int64_t ret = CSafeFile__fopen_original(_this, filename_buffer, mode, a4, a5, a6, a7);
-            return ret;
-        }
-    }
-    return CSafeFile__fopen_original(_this, fileName, mode, a4, a5, a6, a7);
 }
 
 // Intercept ITP decoding and load our own buffer after it's done decoding the dummy texture
 static int64_t (*CTexBase__LoadITP_chunk_IDAT_original)(uint32_t *a1, uint32_t *a2, int64_t a3, bool *a4, unsigned int *pBGRABuffer, unsigned int iWidth, unsigned int iHeight, uint32_t *a8, uint32_t *a9, uint32_t *a10);
 static int64_t CTexBase__LoadITP_chunk_IDAT_hook(uint32_t *a1, uint32_t *a2, int64_t a3, bool *a4, unsigned int *pBGRABuffer, unsigned int iWidth, unsigned int iHeight, uint32_t *a8, uint32_t *a9, uint32_t *a10)
 {
-    TextureType texType = StaticTextureType;
+    TextureType eTexType = StaticTextureType;
 
-    if(texType != TextureType::Unknown)
+    if(eTexType != TextureType::Unknown)
     {
         ed7_debug("Replacing texture: %dx%d\n", iWidth, iHeight);
         int64_t ret = CTexBase__LoadITP_chunk_IDAT_original(a1, a2, a3, a4, pBGRABuffer, iWidth, iHeight, a8, a9, a10);
-        LoadCustomTexture(StaticFileBuffer, StaticFileBufferSize, (unsigned char*)pBGRABuffer, iWidth * iHeight, texType, iWidth);
+        LoadCustomTexture(StaticFileBuffer, StaticFileBufferSize, (unsigned char*)pBGRABuffer, iWidth * iHeight, eTexType, iWidth);
         StaticTextureType = TextureType::Unknown;
         return ret;
     }
@@ -288,16 +299,20 @@ static int CTexMgr__Load2_hook(int64_t this_, const char *pszTextureName, int64_
     stbsp_sprintf(&filename_buffer[16], "%dx%d.itp", iWidth, iHeight);
     ed7_debug("CTexMgr::Load2 - %s - %s - Going to load %s for replacement for %s\n", (const char *)pFile, pszTextureName, filename_buffer, OutputString);
 
-    CSafeFile hCustomFile;
-    CSafeFile__CSafeFile(&hCustomFile);
-    CSafeFile__fopen_original(&hCustomFile, filename_buffer, "rb", 0, 0, 0, 0);
+    CSafeFile* pDummyFile = GetCachedFile(filename_buffer);
+
+    AlreadyHookingIT3 = true;
 
     int dummy;
-    int ret = CTexMgr__Load2_original(this_, pszTextureName, a3, &hCustomFile, &dummy, a6, a7);
+    int ret = CTexMgr__Load2_original(this_, pszTextureName, a3, pDummyFile, &dummy, a6, a7);
     StaticTextureType = TextureType::Unknown;
 
-    CSafeFile__fclose(&hCustomFile);
-    CSafeFileBase__destructor(&hCustomFile);
+    AlreadyHookingIT3 = false;
+
+    CSafeFile__fclose(pDummyFile);
+    CSafeFileBase__destructor(pDummyFile);
+    delete pDummyFile;
+
     return ret;
 }
 
@@ -307,8 +322,16 @@ void ED7ImgLoaderInitialize()
     *(void**)&CSafeFile__fclose = ED7Pointers.CSafeFile__fclose;
     *(void**)&CSafeFileBase__destructor = ED7Pointers.CSafeFileBase__destructor;
 
-    MAKE_HOOK(CTexMgr__Load);
-    MAKE_HOOK(CSafeFile__fopen);
+    *(void**)&CSafeFile__GetSize = ED7Pointers.CSafeFile__GetSize;
+    *(void**)&CSafeFile__fseek = ED7Pointers.CSafeFile__fseek;
+    *(void**)&CSafeFile__ftel = ED7Pointers.CSafeFile__ftel;
+    *(void**)&CSafeFile__fread = ED7Pointers.CSafeFile__fread;
+    *(void**)&CSafeFile__fopen = ED7Pointers.CSafeFile__fopen;
+    *(void**)&CSafeFile__LoadCCMem = ED7Pointers.CSafeFile__LoadCCMem;
+    *(void**)&CSafeFile__CheckOnMem = ED7Pointers.CSafeFile__CheckOnMem;
+    *(void**)&CPU__NewBack = ED7Pointers.CPU__NewBack;
+
     MAKE_HOOK(CTexBase__LoadITP_chunk_IDAT);
     MAKE_HOOK(CTexMgr__Load2);
+    MAKE_HOOK(CTexMgr__LoadITP);
 }

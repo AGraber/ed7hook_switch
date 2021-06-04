@@ -16,13 +16,10 @@ struct ED7Pointers_Struct
     // Offset to .text region of main executable
     uintptr_t TextRegionOffset;
 
-    // Early init function, but late enough so that the NintendoSDK stuff is already initialized
-    void* LateInit;
-
     // Pointers to functions related to ITP decoding/loading/dumping
-    void* CTexMgr__Load;
     void* CTexMgr__Load2;
     void* CTexBase__LoadITP_chunk_IDAT;
+    void* CTexMgr__LoadITP;
 
     // Array that holds localized strings
     void* TranslationArray;
@@ -39,10 +36,22 @@ struct ED7Pointers_Struct
     void* CED6Window__SetText;
 
     // CSafeFile functions
-    void* CSafeFile__fopen;
     void* CSafeFile__CSafeFile;
-    void* CSafeFile__fclose;
     void* CSafeFileBase__destructor;
+    void* CSafeFile__fopen;
+    void* CSafeFile__fclose;
+    void* CSafeFile__fread;
+    void* CSafeFile__fseek;
+    void* CSafeFile__ftel;
+    void* CSafeFile__CheckOnMem;
+    void* CSafeFile__GetSize;
+    void* CSafeFile__LoadCCMem; // static
+    void* CSafeFile__Init; // static
+
+    void* CSafeFileBase__open_FileNameCheck;
+
+    // The game's memory allocator
+    void* CPU__NewBack;
 
     // CFontMgr2
     void* CFontMgr2__GetSizeSJIS;
@@ -118,16 +127,19 @@ struct ED7Pointers_Struct
     // But they are not needed for playing the game
 
     void* CNode__Load;
+
+    void* CTexMgr__Load;
     void* CTexMgr__UnLoad;
+
     void* CMessageWindow__PrintText2;
-    void* CSafeFile__fseek;
 
     void* CFontMgr2__DrawFontSJIS;
-
     void* CFontMgr2__GetSizeMOJICODE;
     void* CFontMgr2__ConvertUTF8toMOJICODE;
 
     void* GetLanguageForLanguageCode;
+
+    void* LateInit;
 };
 
 extern ED7Pointers_Struct ED7Pointers;
