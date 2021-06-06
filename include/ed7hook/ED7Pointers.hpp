@@ -16,6 +16,9 @@ struct ED7Pointers_Struct
     // Offset to .text region of main executable
     uintptr_t TextRegionOffset;
 
+    // This function initializes some NintendoSDK stuff for us
+    void* LateInit;
+
     // Pointers to functions related to ITP decoding/loading/dumping
     void* CTexMgr__Load2;
     void* CTexBase__LoadITP_chunk_IDAT;
@@ -46,7 +49,6 @@ struct ED7Pointers_Struct
     void* CSafeFile__CheckOnMem;
     void* CSafeFile__GetSize;
     void* CSafeFile__LoadCCMem; // static
-    void* CSafeFile__Init; // static
 
     void* CSafeFileBase__open_FileNameCheck;
 
@@ -139,7 +141,7 @@ struct ED7Pointers_Struct
 
     void* GetLanguageForLanguageCode;
 
-    void* LateInit;
+    void* CSafeFile__Init; // static
 };
 
 extern ED7Pointers_Struct ED7Pointers;

@@ -34,7 +34,7 @@ ARCH	:=	-march=armv8-a+crc+fp+simd -mtune=cortex-a57 -mtp=soft -fPIC -mcpu=corte
 
 # change to O3 or even Ofast if nothing breaks for final release
 # also try enabling LTO to get max perf
-CFLAGS	:=	-g -Og -Wall -Wno-multichar -ffunction-sections \
+CFLAGS	:=	-g -Ofast -flto -Wall -Wno-multichar -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__

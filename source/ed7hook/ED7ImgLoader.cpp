@@ -191,9 +191,8 @@ static bool InitCustomTextureFromFileName(char* pszFileName, unsigned char* pFil
 }
 
 // Get a cached in memory file from the engine
-CSafeFile* GetCachedFile(const char* pszPath)
+void GetCachedFile(const char* pszPath, CSafeFile* pSafeFile)
 {
-    CSafeFile* pSafeFile = new CSafeFile;
     CSafeFile__CSafeFile(pSafeFile);
 
     CSafeFile__fopen(pSafeFile, pszPath, "rb", 0, 0, 0, 0);
@@ -207,8 +206,6 @@ CSafeFile* GetCachedFile(const char* pszPath)
         CSafeFile__LoadCCMem(pszPath, pBuffer, iFileSize, 1);
         CSafeFile__fopen(pSafeFile, pszPath, "rb", 0, 0, 0, 0);
     }
-
-    return pSafeFile;
 }
 
 int64_t (*CTexMgr__LoadITP_original)(unsigned int *this_, unsigned int iTextureId, CSafeFile *pFile, int64_t a4, int64_t a5, int64_t a6, unsigned int itpPixelFormatType);
@@ -244,16 +241,16 @@ int64_t CTexMgr__LoadITP_hook(unsigned int *this_, unsigned int iTextureId, CSaf
 
     char filename_buffer[32] = "pom:/data_patch/";
     stbsp_sprintf(&filename_buffer[16], "%dx%d.itp", pixel_width, pixel_height);
-    CSafeFile* pDummyFile = GetCachedFile(filename_buffer);
+    CSafeFile hDummyFile;
+    GetCachedFile(filename_buffer, &hDummyFile);
 
     StaticTextureType = eTexType;
     StaticFileBufferSize = iFileSize;
 
-    auto ret = CTexMgr__LoadITP_original(this_, iTextureId, pDummyFile, a4, a5, a6, itpPixelFormatType);
+    auto ret = CTexMgr__LoadITP_original(this_, iTextureId, &hDummyFile, a4, a5, a6, itpPixelFormatType);
 
-    CSafeFile__fclose(pDummyFile);
-    CSafeFileBase__destructor(pDummyFile);
-    delete pDummyFile;
+    CSafeFile__fclose(&hDummyFile);
+    CSafeFileBase__destructor(&hDummyFile);
 
     StaticTextureType = TextureType::Unknown;
 
@@ -299,19 +296,19 @@ static int CTexMgr__Load2_hook(int64_t this_, const char *pszTextureName, int64_
     stbsp_sprintf(&filename_buffer[16], "%dx%d.itp", iWidth, iHeight);
     ed7_debug("CTexMgr::Load2 - %s - %s - Going to load %s for replacement for %s\n", (const char *)pFile, pszTextureName, filename_buffer, OutputString);
 
-    CSafeFile* pDummyFile = GetCachedFile(filename_buffer);
+    CSafeFile hDummyFile;
+    GetCachedFile(filename_buffer, &hDummyFile);
 
     AlreadyHookingIT3 = true;
 
     int dummy;
-    int ret = CTexMgr__Load2_original(this_, pszTextureName, a3, pDummyFile, &dummy, a6, a7);
+    int ret = CTexMgr__Load2_original(this_, pszTextureName, a3, &hDummyFile, &dummy, a6, a7);
     StaticTextureType = TextureType::Unknown;
 
     AlreadyHookingIT3 = false;
 
-    CSafeFile__fclose(pDummyFile);
-    CSafeFileBase__destructor(pDummyFile);
-    delete pDummyFile;
+    CSafeFile__fclose(&hDummyFile);
+    CSafeFileBase__destructor(&hDummyFile);
 
     return ret;
 }

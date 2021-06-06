@@ -25,10 +25,10 @@ ED7HookLanguage ED7HookCurrentLanguage;
 /**
  * Late entry point for when the game has already initialized some stuff for us
  */
-void (*CSafeFile__Init_original)();
-void CSafeFile__Init_hook()
+void (*LateInit_original)();
+void LateInit_hook()
 {
-    CSafeFile__Init_original();
+    LateInit_original();
     
     ED7DebugInitialize();
     ED7ExeTextInitialize();
@@ -73,5 +73,5 @@ void ed7hook_main()
         return;
     }
 
-    MAKE_HOOK(CSafeFile__Init);
+    MAKE_HOOK(LateInit);
 }

@@ -54,7 +54,7 @@ inline bool IsSJISCharMultibyte(unsigned char character)
 // to return garbage for these.
 void InitializeFontData(int64_t* this_)
 {
-    for(char i = 32; i < 256; ++i) {
+    for(char i = 32; i < 255; ++i) {
         if(IsSJISCharMultibyte(i)) {
             continue;
         }
@@ -66,7 +66,7 @@ void InitializeFontData(int64_t* this_)
     // get from 0x81 to 0x9F
     for(char i = 0x81; i <= 0x9F; ++i)
     {
-        for(char j = 0; j <= 0xFF; ++j)
+        for(char j = 0; j < 0xFF; ++j)
         {
             char szTextForCharacterWidth[3] = {i, j, 0};
             pMultibyteAdvance[i][j] = CFontMgr2__GetSizeSJIS(this_, szTextForCharacterWidth, 1.0, NULL, NULL, NULL, 1.0);
@@ -76,7 +76,7 @@ void InitializeFontData(int64_t* this_)
     // get from 0xE0 to 0xEF
     for(char i = 0xE0; i <= 0xEF; ++i)
     {
-        for(char j = 0; j <= 0xFF; ++j)
+        for(char j = 0; j < 0xFF; ++j)
         {
             char szTextForCharacterWidth[3] = {i, j, 0};
             pMultibyteAdvance[i][j] = CFontMgr2__GetSizeSJIS(this_, szTextForCharacterWidth, 1.0, NULL, NULL, NULL, 1.0);
