@@ -76,8 +76,11 @@ bool ED7PointersInitialize()
             ED7Pointers.String_Support_Member = EXE_PTR(0x2FDC95);
             ED7Pointers.String_Attack_Member = EXE_PTR(0x32CACC);
 
+            ED7Pointers.RenderTexture = EXE_PTR(0x215040);
+
             ED7Pointers.nvnLoadCProcs = EXE_PTR(0x210B60);
             ED7Pointers.pfnc_nvnSamplerBuilderSetMaxAnisotropy = EXE_PTR(0x5609EF30);
+            ED7Pointers.pfnc_nvnQueuePresentTexture = EXE_PTR(0x5609E980);
 
             // Optional/Unused
             ED7Pointers.CNode__Load = EXE_PTR(0x17640);
@@ -176,8 +179,11 @@ bool ED7PointersInitialize()
             ED7Pointers.String_Support_Member = EXE_PTR(0x2FECAB);
             ED7Pointers.String_Attack_Member = EXE_PTR(0x32DB53);
 
+            ED7Pointers.RenderTexture = EXE_PTR(0x215380);
+
             ED7Pointers.nvnLoadCProcs = EXE_PTR(0x210EA0);
             ED7Pointers.pfnc_nvnSamplerBuilderSetMaxAnisotropy = EXE_PTR(0x5609FF30);
+            ED7Pointers.pfnc_nvnQueuePresentTexture = EXE_PTR(0x5609F980);
 
             // Optional/Unused
             ED7Pointers.CNode__Load = EXE_PTR(0x17640);

@@ -120,9 +120,13 @@ struct ED7Pointers_Struct
     void* String_Support_Member; // "Support Member"
     void* String_Attack_Member; // "Attack Member"
 
+    // Dynamic GPU clocks
+    void* RenderTexture;
+
     // nvn patches
     void* nvnLoadCProcs;
     void* pfnc_nvnSamplerBuilderSetMaxAnisotropy;
+    void* pfnc_nvnQueuePresentTexture;
 
     // These are not used anymore, but are left for reference
     // I used to have them for debugging/dumping purposes

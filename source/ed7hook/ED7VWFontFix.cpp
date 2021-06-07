@@ -240,8 +240,8 @@ char* CMessageWindow__PrintText_hook(CMessageWindow *_this, char *pszWindowConte
 
 
 // If fixed width value is found, set global variable so CMessageWindow::PrintText hook can handle it
-char* (*CMessageWindow__AnonymousText_original)(CMessageWindow *a1, unsigned __int8 *a2, int iWidthOverride, int a4, char *pszDialogueText, int a6, float a7, float a8);
-char* CMessageWindow__AnonymousText_hook(CMessageWindow *a1, unsigned __int8 *a2, int iWidthOverride, int a4, char *pszDialogueText, int a6, float a7, float a8)
+char* (*CMessageWindow__AnonymousText_original)(CMessageWindow *a1, uint8_t *a2, int iWidthOverride, int a4, char *pszDialogueText, int a6, float a7, float a8);
+char* CMessageWindow__AnonymousText_hook(CMessageWindow *a1, uint8_t *a2, int iWidthOverride, int a4, char *pszDialogueText, int a6, float a7, float a8)
 {
     if(iWidthOverride != 0 && iWidthOverride != -1)
     {

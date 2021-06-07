@@ -11,8 +11,20 @@
 namespace nn {
 namespace oe {
     typedef s32 FocusHandlingMode;
-    typedef s32 PerformanceMode;
-    typedef s32 CpuBoostMode;
+    
+    enum CpuBoostMode
+    {
+        Disabled,
+        BoostCPU,
+        ThrottleGPU,
+    };
+
+    enum PerformanceMode
+    {
+        Invalid = -1,
+        Normal,
+        Boost,
+    };
 
     struct DisplayVersion {
         char name[16];
@@ -34,5 +46,6 @@ namespace oe {
     void FinishStartupLogo();
     nn::settings::LanguageCode GetDesiredLanguage();
     void GetDisplayVersion(DisplayVersion*);
+    void SetCpuBoostMode(nn::oe::CpuBoostMode);
 };  // namespace oe
 };  // namespace nn
