@@ -443,7 +443,7 @@ void ED7VWFontFixInitialize()
 
     static constexpr unsigned char SpaceCheckInstructionReplace_w8[4] = {0x1F, 0x01, 0x00, 0x71}; // cmp w8, #0x00
 
-    static constexpr unsigned char BattleTutorialSBreakBlockedOffsetX[4] = {0x94, 0x16, 0x80, 0x52}; // mov w20, #180
+    static constexpr unsigned char BattleTutorialSBreakBlockedOffsetX[4] = {0x34, 0x15, 0x80, 0x52}; // mov w20, #169
     static constexpr unsigned char BattleTutorialSBreakBlockedOffsetY[4] = {0x95, 0x03, 0x80, 0x52}; // mov w21, #28
 
     // Invalidate space check that changes spaces width to another value
