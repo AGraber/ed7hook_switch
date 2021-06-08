@@ -26,6 +26,7 @@
 #include "ed7hook/ED7ImgLoader.hpp"
 #include "ed7hook/ED7Debug.hpp"
 #include "ed7hook/ED7Utils.hpp"
+#include "ed7hook/ED7Main.hpp"
 
 #include "nn/oe.h"
 
@@ -329,6 +330,10 @@ void ED7ImgLoaderInitialize()
     *(void**)&CPU__NewBack = ED7Pointers.CPU__NewBack;
 
     MAKE_HOOK(CTexBase__LoadITP_chunk_IDAT);
-    MAKE_HOOK(CTexMgr__Load2);
     MAKE_HOOK(CTexMgr__LoadITP);
+
+    if(ED7HookCurrentLanguage == ED7HookLanguage::English)
+    {
+        MAKE_HOOK(CTexMgr__Load2);
+    }
 }
