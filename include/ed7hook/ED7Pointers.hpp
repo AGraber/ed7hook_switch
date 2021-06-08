@@ -111,6 +111,9 @@ struct ED7Pointers_Struct
     void* BattleTutorialSBreakBlockedOffsetX;
     void* BattleTutorialSBreakBlockedOffsetY;
 
+    // Extra menu mode right column text
+    void* ExtraMode_RightColumnOffsetX;
+
     // Faster string comparison through constant address
     void* String_PlayTime1; // "%3d:%2d:%2d"
     void* String_PlayTime2; // "PlayTime %2d:%2d:%2d\n"

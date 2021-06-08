@@ -446,10 +446,15 @@ void ED7VWFontFixInitialize()
     static constexpr unsigned char BattleTutorialSBreakBlockedOffsetX[4] = {0x34, 0x15, 0x80, 0x52}; // mov w20, #169
     static constexpr unsigned char BattleTutorialSBreakBlockedOffsetY[4] = {0x95, 0x03, 0x80, 0x52}; // mov w21, #28
 
+    static constexpr unsigned char ExtraMode_RightColumnOffsetX[4] = {0x56, 0x03, 0x80, 0x52}; // mov w22, #26
+
     // Invalidate space check that changes spaces width to another value
     sky_memcpy(ED7Pointers.FontRendererSpaceCheck, SpaceCheckInstructionReplace_w8, 4);
 
     // Change instructions that load X/Y values for tutorial icons in registers
     sky_memcpy(ED7Pointers.BattleTutorialSBreakBlockedOffsetX, BattleTutorialSBreakBlockedOffsetX, 4);
     sky_memcpy(ED7Pointers.BattleTutorialSBreakBlockedOffsetY, BattleTutorialSBreakBlockedOffsetY, 4);
+
+    // Change instruction that loads offset X for some Extra Mode Text
+    sky_memcpy(ED7Pointers.ExtraMode_RightColumnOffsetX, ExtraMode_RightColumnOffsetX, 4);
 }

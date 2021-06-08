@@ -171,6 +171,8 @@ bool ED7PointersInitialize()
             ED7Pointers.BattleTutorialSBreakBlockedOffsetX = EXE_PTR(0xDD9C8);
             ED7Pointers.BattleTutorialSBreakBlockedOffsetY = EXE_PTR(0xDD9E4);
 
+            ED7Pointers.ExtraMode_RightColumnOffsetX = EXE_PTR(0x1C07A0);
+
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x339E02);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x2F7532);
             ED7Pointers.String_EXP = EXE_PTR(0x02FEC3C);
