@@ -8,8 +8,7 @@ for linking, runtime hooking and code patching originally for SSBU.
 
 #### Note:
 This repository is meant for development of the patch. If you just want to play
-Trails from Zero on English on your Switch, wait until this patch is properly
-packaged with translated assets and released.
+Trails from Zero on English on your Switch, [go here](https://gbatemp.net/threads/the-legend-of-heroes-trails-from-zero-kai-complete-english-partial-japanese-patch-qol-patches.589694/)
 
 ## Building
 - Install libwebp dependency with devkitpro: `pacman -S switch-libwebp`
