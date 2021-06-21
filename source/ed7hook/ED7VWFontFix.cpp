@@ -8,6 +8,8 @@
 #include "ed7hook/ED7Pointers.hpp"
 #include "ed7hook/ED7Debug.hpp"
 #include "ed7hook/ED7Utils.hpp"
+#include "ed7hook/ED7ExeText.hpp"
+#include "ed7hook/ED7MiscPatches.hpp"
 
 /**
  * This file mostly consists of carefully placed hooks that
@@ -42,6 +44,12 @@ struct CMessageWindow
 // Game functions
 const char* (*GetItemName)(int64_t _this, int itemIndex);
 float (*CFontMgr2__GetSizeSJIS)(int64_t* a1, const char *s, float a3, float *a4, float *a5, float *, float);
+
+template<bool IsZero>
+const char* GetItemName_Offset(CMessageWindow* _this, int itemIndex)
+{
+    return GetItemName(*(int64_t *)&_this->pad[24] + (IsZero ? 696544 : 711744), itemIndex);
+}
 
 inline bool IsSJISCharMultibyte(unsigned char character)
 {
@@ -82,6 +90,10 @@ void InitializeFontData(int64_t* this_)
             pMultibyteAdvance[i][j] = CFontMgr2__GetSizeSJIS(this_, szTextForCharacterWidth, 1.0, NULL, NULL, NULL, 1.0);
         }
     }
+
+    // romfs already mounted, so call these
+    ED7ExeText_SetupTranslationTable();
+    ED7MiscPatches_SetupSaveOffsets();
 }
 
 inline float GetSJISCharWidth(char byte1, char byte2, float width)
@@ -99,6 +111,7 @@ int64_t CFontMgr2__SetFixMode_hook(int64_t* this_, int fixMode)
 }
 
 // Calculate width for a CMessageWindow dialog box's contents
+template<bool IsZero>
 short GetWidthForDialogBoxContents(CMessageWindow *_this, const char* text, float currentTextWidth)
 {
     float longestWidth = 0.0, currentWidth = 0.0;
@@ -110,7 +123,7 @@ short GetWidthForDialogBoxContents(CMessageWindow *_this, const char* text, floa
         {
             case 0x1F: // Insert item name
             {
-                const char* itemName = GetItemName(*(int64_t *)&_this->pad[24] + 696544LL, *(unsigned short*)(&text[1]));
+                const char* itemName = GetItemName_Offset<IsZero>(_this, *(unsigned short*)(&text[1]));
                 while(char itemCharacter = *itemName++)
                 {
                     if(IsSJISCharMultibyte(itemCharacter))
@@ -199,6 +212,7 @@ short OriginalFixedWidth;
 
 // Inserts custom width values on CMessageWindow
 char* (*CMessageWindow__PrintText_original)(CMessageWindow *_this, char *pszWindowContent, int64_t a3, int a4);
+template<bool IsZero>
 char* CMessageWindow__PrintText_hook(CMessageWindow *_this, char *pszWindowContent, int64_t a3, int a4)
 {
     if(CorrectFixedWidthValue)
@@ -225,8 +239,8 @@ char* CMessageWindow__PrintText_hook(CMessageWindow *_this, char *pszWindowConte
 
     auto ret = CMessageWindow__PrintText_original(_this, pszWindowContent, a3, a4);
 
-    auto textBoxWidth = GetWidthForDialogBoxContents(_this, pszWindowContent, _this->pfWidthStuff[26]) + pFontAdvanceTable[' '] * _this->pfWidthStuff[26];
-    auto nameWidth = GetWidthForDialogBoxContents(_this, (char*)( ((int64_t*)(_this))[20] + 1080), _this->pfWidthStuff[26]) + pFontAdvanceTable[' '] * _this->pfWidthStuff[26];
+    auto textBoxWidth = GetWidthForDialogBoxContents<IsZero>(_this, pszWindowContent, _this->pfWidthStuff[26]) + pFontAdvanceTable[' '] * _this->pfWidthStuff[26];
+    auto nameWidth = GetWidthForDialogBoxContents<IsZero>(_this, (char*)( ((int64_t*)(_this))[20] + 1080), _this->pfWidthStuff[26]) + pFontAdvanceTable[' '] * _this->pfWidthStuff[26];
     if(nameWidth < (_this->pfWidthStuff[26] * 4) ) // Set a minimum in case the dialog box is too small
     {
         nameWidth = (_this->pfWidthStuff[26] * 4);
@@ -424,7 +438,12 @@ void ED7VWFontFixInitialize()
         return;
     }
 
-    MAKE_HOOK(CMessageWindow__PrintText);
+    A64HookFunction(
+        ED7Pointers.CMessageWindow__PrintText,
+        reinterpret_cast<void*>(ED7Pointers.IsZero ? CMessageWindow__PrintText_hook<true> : CMessageWindow__PrintText_hook<false> ),
+        (void**)&CMessageWindow__PrintText_original
+    );
+
     MAKE_HOOK(CFontMgr2__SetFixMode);
     MAKE_HOOK(BookDrawText);
     MAKE_HOOK(BookIsKana);
@@ -454,6 +473,15 @@ void ED7VWFontFixInitialize()
     // Change instructions that load X/Y values for tutorial icons in registers
     sky_memcpy(ED7Pointers.BattleTutorialSBreakBlockedOffsetX, BattleTutorialSBreakBlockedOffsetX, 4);
     sky_memcpy(ED7Pointers.BattleTutorialSBreakBlockedOffsetY, BattleTutorialSBreakBlockedOffsetY, 4);
+
+    if(!ED7Pointers.IsZero)
+    {
+        // Removes space check messing up font rendering on notebook, again for Azure, on this other function
+        skyline::inlinehook::ControlledPages control( (void*)(ED7Pointers.NotebookSpaceCheckJump2), 1 * sizeof(short));
+        control.claim();
+        *(short*)control.rw = ED7Pointers.NotebookSpaceCheckNewOffset2;
+        control.unclaim();
+    }
 
     // Change instruction that loads offset X for some Extra Mode Text
     sky_memcpy(ED7Pointers.ExtraMode_RightColumnOffsetX, ExtraMode_RightColumnOffsetX, 4);

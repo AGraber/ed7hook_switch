@@ -6,6 +6,9 @@
 #include "ed7hook/ED7Debug.hpp"
 
 #include "nn/oe.h"
+#include "nn/fs.h"
+
+#include "nlohmann/json.hpp"
 
 // These patches enable CPU boost on some loading zones
 // On normal circumstances it's almost unnoticeable
@@ -66,7 +69,6 @@ int64_t (LoadMap_hook)(int64_t a1, int64_t a2)
 // GPU boost on low FPS
 int Counter = -1;
 uint8_t FPS = 0xFF;
-float systemtickfrequency = 19200000;
 int PerformanceConfig_GPU307mhz = 0x00020003;
 int PerformanceConfig_GPU384mhz = 0x00020004;
 int PerformanceConfig_GPU460mhz = 0x92220008;
@@ -131,6 +133,56 @@ void nvnLoadCProcs_hook(intptr_t device, intptr_t nvnDeviceGetProcAddress)
 
     *(void**)&nvnQueuePresentTexture_original = *(void**)ED7Pointers.pfnc_nvnQueuePresentTexture;
     *(void**)ED7Pointers.pfnc_nvnQueuePresentTexture = (void*)nvnQueuePresentTexture_hook;
+}
+
+void ED7MiscPatches_SetupSaveOffsets()
+{
+    if(ED7HookCurrentLanguage == ED7HookLanguage::English)
+    {
+        char* pszJsonBuffer;
+        
+        // open file and yolo it without error checking - patch wouldn't work if it errors while reading these files anyways
+        nn::fs::FileHandle hFile;
+        nn::fs::OpenFile(&hFile, "rom:/data_patch/savefix.json", nn::fs::OpenMode_Read);
+
+        s64 iSize;
+        nn::fs::GetFileSize(&iSize, hFile);
+        
+        pszJsonBuffer = (char*)malloc(iSize + 1);
+        nn::fs::ReadFile(hFile, 0, pszJsonBuffer, iSize);
+        pszJsonBuffer[iSize] = 0;
+
+        nn::fs::CloseFile(hFile);
+
+        auto jsonExeStrings = nlohmann::json::parse(pszJsonBuffer);
+
+        free(pszJsonBuffer);
+
+        int* SaveOpcodePtrFixInfoAddr = (int*)ED7Pointers.SaveOpcodePtrFixInfo;
+
+        skyline::inlinehook::ControlledPages control(SaveOpcodePtrFixInfoAddr, 42 * sizeof(char*));
+        control.claim();
+        int* SaveOpcodePtrFixInfo = (int*)control.rw;
+
+        for(auto jsonValue : jsonExeStrings)
+        {
+            int iChapter = jsonValue["saveChapter"].get<int>();
+            if(iChapter < 0 || iChapter > 6)
+            {
+                continue;
+            }
+
+
+            int iEnglishOffset = jsonValue["EnglishOffset"].get<int>();
+
+            for(int i = 0; i != 3; ++i)
+            {
+                SaveOpcodePtrFixInfo[14 * i + 2 * iChapter + 1] = iEnglishOffset;
+            }
+        }
+
+        control.unclaim();
+    }
 }
 
 void ED7MiscPatchesInitialize()

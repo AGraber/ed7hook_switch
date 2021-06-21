@@ -97,6 +97,6 @@ void ED7FileLoaderInitialize()
     );
 
     // Skip file name check in some instances
-    static constexpr unsigned char SkipFileNameCheck[4] = {0x08, 0x00, 0x00, 0x14}; // cmp w8, #0x00
+    static constexpr unsigned char SkipFileNameCheck[4] = {0x08, 0x00, 0x00, 0x14}; // b #0x28
     sky_memcpy(ED7Pointers.CSafeFileBase__open_FileNameCheck, SkipFileNameCheck, 4);
 }

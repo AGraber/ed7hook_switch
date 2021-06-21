@@ -2,7 +2,7 @@
 #include "skyline/utils/cpputils.hpp"
 #include "nn/nn.h"
 
-ED7Pointers_Struct ED7Pointers; 
+ED7Pointers_Struct ED7Pointers{};
 
 #define EXE_PTR(ptr) (void*)( (uintptr_t)TextRegionOffset + ptr)
 
@@ -157,6 +157,8 @@ bool ED7PointersInitialize()
             ED7Pointers.SaveListFontRender = EXE_PTR(0x4D070);
             ED7Pointers.SaveListFontRender_ReturnAfterDescription = EXE_PTR(0x4D57C);
 
+            ED7Pointers.SaveOpcodePtrFixInfo = EXE_PTR(0x345814);
+
             ED7Pointers.NotebookDrawText = EXE_PTR(0x1812A0);
             ED7Pointers.NotebookDrawText_ReturnAfterMonstElemQuestionMark = EXE_PTR(0x18DC90);
             ED7Pointers.NotebookDrawText_ReturnAfterCompletedRequestsStr = EXE_PTR(0x1984F0);
@@ -200,20 +202,53 @@ bool ED7PointersInitialize()
 
         // Azure is still unfinished
 
-        case 0x5f200: // Azure 1.0.0
-            ED7Pointers.GameName = "Trails to Azure 1.0.0";
+        case 0x5f200: // Azure 1.0.0 / 1.0.1
+            ED7Pointers.GameName = "Trails to Azure 1.0.0-1.0.1";
             ED7Pointers.IsZero = false;
 
             ED7Pointers.LateInit = EXE_PTR(0x5EBE0);
 
-            ED7Pointers.CTexMgr__Load = EXE_PTR(0x7850);
             ED7Pointers.CTexMgr__Load2 = EXE_PTR(0x7370);
             ED7Pointers.CTexBase__LoadITP_chunk_IDAT = EXE_PTR(0x62AD0);
-            ED7Pointers.CSafeFile__fopen = EXE_PTR(0x3A320);
-            ED7Pointers.SetGameLanguage = EXE_PTR(0x5B450);
+            ED7Pointers.CTexMgr__LoadITP = EXE_PTR(0x64480);
+
             ED7Pointers.TranslationArray = EXE_PTR(0x4A1588);
+
             ED7Pointers.CMessageWindow__PrintText = EXE_PTR(0x125FE0);
+            ED7Pointers.CMessageWindow__AnonymousText = EXE_PTR(0x127140);
             ED7Pointers.GetItemName = EXE_PTR(0x180930);
+
+            ED7Pointers.FontRendererSpaceCheck = EXE_PTR(0x1219E8);
+
+            // CED6Window_SetText hook not needed in Azure
+
+            ED7Pointers.CSafeFile__CSafeFile = EXE_PTR(0x3BE60);
+            ED7Pointers.CSafeFileBase__destructor = EXE_PTR(0x410A0);
+            ED7Pointers.CSafeFile__fopen = EXE_PTR(0x3A320);
+            ED7Pointers.CSafeFile__fclose = EXE_PTR(0x3B820);
+            ED7Pointers.CSafeFile__fread = EXE_PTR(0x3B4E0);
+            ED7Pointers.CSafeFile__fseek = EXE_PTR(0x3BF00);
+            ED7Pointers.CSafeFile__ftel = EXE_PTR(0x3C850);
+            ED7Pointers.CSafeFile__CheckOnMem = EXE_PTR(0x3C770);
+            ED7Pointers.CSafeFile__GetSize = EXE_PTR(0x3C7B0);
+            ED7Pointers.CSafeFile__LoadCCMem = EXE_PTR(0x3EB80);
+
+            ED7Pointers.CSafeFileBase__open_FileNameCheck = EXE_PTR(0x41318);
+
+            ED7Pointers.CPU__NewBack = EXE_PTR(0x354E0);
+
+            ED7Pointers.CFontMgr2__GetSizeSJIS = EXE_PTR(0x43C00);
+            ED7Pointers.CFontMgr2__SetFixMode = EXE_PTR(0x43860);
+
+            ED7Pointers.BookDrawText = EXE_PTR(0x123960);
+            ED7Pointers.BookIsKana = EXE_PTR(0x6DCB0);
+            ED7Pointers.BookGetFontWidth = EXE_PTR(0x127CB0);
+
+            ED7Pointers.NotebookSpaceCheckJump = EXE_PTR(0x3EDE60);
+            ED7Pointers.NotebookSpaceCheckNewOffset = 0xFA;
+
+            ED7Pointers.NotebookSpaceCheckJump2 = EXE_PTR(0x3EDDF5);
+            ED7Pointers.NotebookSpaceCheckNewOffset2 = 0x45;
 
             ED7Pointers.LoadBattle = EXE_PTR(0x766C0);
             ED7Pointers.LoadBattle2 = EXE_PTR(0x736F0);
@@ -223,19 +258,57 @@ bool ED7PointersInitialize()
             ED7Pointers.AdditionalStrings1 = EXE_PTR(0x47380);
             ED7Pointers.AdditionalStrings2 = EXE_PTR(0x17DC10);
             ED7Pointers.AdditionalStrings3 = EXE_PTR(0x18C450);
+            ED7Pointers.AdditionalStrings4 = EXE_PTR(0x28A960);
 
+            ED7Pointers.SetGameLanguage = EXE_PTR(0x5B450);
             ED7Pointers.GetConsoleDesiredLanguage1 = EXE_PTR(0x5F5D0);
             ED7Pointers.GetConsoleDesiredLanguage2 = EXE_PTR(0x5F630);
 
             ED7Pointers.iCurrentLanguage1 = EXE_PTR(0x5125A8);
             ED7Pointers.iCurrentLanguage2 = EXE_PTR(0x5129AC);
 
+            ED7Pointers.SaveListFontRender = EXE_PTR(0x4CEE0);
+            ED7Pointers.SaveListFontRender_ReturnAfterDescription = EXE_PTR(0x4D3EC);
+
+            ED7Pointers.SaveOpcodePtrFixInfo = EXE_PTR(0x3EE4A0);
+
+            ED7Pointers.NotebookDrawText = EXE_PTR(0x18F480);
+            ED7Pointers.NotebookDrawText_ReturnAfterMonstElemQuestionMark = EXE_PTR(0x19C37C);
+            ED7Pointers.NotebookDrawText_ReturnAfterCompletedRequestsStr = EXE_PTR(0x1A695C);
+
+            ED7Pointers.NotebookElementBarDraw = EXE_PTR(0x136140);
+            ED7Pointers.NotebookElementBarDraw_ReturnBackground = EXE_PTR(0x19C290);
+            ED7Pointers.NotebookElementBarDraw_ReturnBar = EXE_PTR(0x19C32C);
+
+            ED7Pointers.NotebookDrawNumberRightAligned = EXE_PTR(0x190920);
+            ED7Pointers.NotebookDrawNumberRightAligned_ReturnAfterElemEff = EXE_PTR(0x19C354);
+
+            ED7Pointers.BattleTutorialSBreakBlockedOffsetX = EXE_PTR(0xE39BC);
+            ED7Pointers.BattleTutorialSBreakBlockedOffsetY = EXE_PTR(0xE39D8);
+
+            ED7Pointers.ExtraMode_RightColumnOffsetX = EXE_PTR(0x1D5410);
+
+            ED7Pointers.String_PlayTime1 = EXE_PTR(0x3DD672);
+            ED7Pointers.String_PlayTime2 = EXE_PTR(0x36E721);
+            ED7Pointers.String_EXP = EXE_PTR(0x37A72B);
+            ED7Pointers.String_Resist = EXE_PTR(0x39FE0E);
+            ED7Pointers.String_Item = EXE_PTR(0x3C92C6);
+            ED7Pointers.String_Support_Member = EXE_PTR(0x37A789);
+            ED7Pointers.String_Attack_Member = EXE_PTR(0x3C92D9);
+
+            ED7Pointers.RenderTexture = EXE_PTR(0x242FA0);
+
+            ED7Pointers.nvnLoadCProcs = EXE_PTR(0x23EAC0);
+            ED7Pointers.pfnc_nvnSamplerBuilderSetMaxAnisotropy = EXE_PTR(0x62963F50);
+            ED7Pointers.pfnc_nvnQueuePresentTexture = EXE_PTR(0x629639A0);
+
             // Optional/Unused
             ED7Pointers.CNode__Load = EXE_PTR(0x17560);
+            ED7Pointers.CTexMgr__Load = EXE_PTR(0x7850);
             ED7Pointers.CTexMgr__UnLoad = EXE_PTR(0x1C50);
+            ED7Pointers.CFontMgr2__DrawFontSJIS = EXE_PTR(0x468D0);
             ED7Pointers.GetLanguageForLanguageCode = EXE_PTR(0x5F670);
             break;
-
 
         default:
             R_ERRORONFAIL(startup_address);

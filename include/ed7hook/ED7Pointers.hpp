@@ -68,6 +68,16 @@ struct ED7Pointers_Struct
     void* NotebookSpaceCheckJump;
     short NotebookSpaceCheckNewOffset;
 
+    // Both Zero and Azure have the function that uses the jump table
+    // which is pointed before these next 2, but Azure has a copy of this
+    // function with minimal changes, and this one is used on the most notable
+    // place that needs fixing (the notebook space thing) instead of the
+    // previous one. I suspect that the previous one might also be used,
+    // but I don't know where. Anyways, patching out those space checks
+    // that set them to some fixed-width value wouldn't hurt anyways.
+    void* NotebookSpaceCheckJump2;
+    short NotebookSpaceCheckNewOffset2;
+
     // CPU Boost patches
     void* LoadBattle;
     void* LoadBattle2;
@@ -92,6 +102,9 @@ struct ED7Pointers_Struct
     // Offset save description to fit font
     void* SaveListFontRender;
     void* SaveListFontRender_ReturnAfterDescription;
+
+    // Table that contains opcode offsets for each language
+    void* SaveOpcodePtrFixInfo;
 
     // Change offsets of notebook text drawing
     void* NotebookDrawText;

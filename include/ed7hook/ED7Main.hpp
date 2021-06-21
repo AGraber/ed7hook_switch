@@ -1,6 +1,6 @@
 #pragma once
 
-#define ED7HOOK_VERSION "v1.0.0"
+#define ED7HOOK_VERSION "v1.1.0"
 
 enum ED7HookLanguage
 {

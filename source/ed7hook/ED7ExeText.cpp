@@ -2,12 +2,42 @@
 #include <stdarg.h>
 #include "skyline/inlinehook/And64InlineHook.hpp"
 #include "skyline/inlinehook/memcpy_controlled.hpp"
+#include "skyline/utils/cpputils.hpp"
 #include "nn/oe.h"
 #include "ed7hook/ED7Main.hpp"
 #include "ed7hook/ED7Pointers.hpp"
 #include "ed7hook/ED7Utils.hpp"
-#include "ed7hook/ED7ExeText_ZeroContents.hpp"
-#include "ed7hook/ED7ExeText_AzureContents.hpp"
+#include "nlohmann/json.hpp"
+
+// iconv provided by NintendoSDK from the game, nice
+#include <iconv.h>
+
+iconv_t hIcd;
+
+void InitializeUtf8SjisIconv()
+{
+    hIcd = iconv_open("Shift_JIS", "UTF-8");
+}
+
+void FinalizeUtf8SjisIconv()
+{
+    iconv_close(hIcd);
+}
+
+char* ConvertUtf8ToSjis(const char* pszUtf8Text_const)
+{
+    char* pszUtf8Text = (char*)pszUtf8Text_const;
+    char szSjisBuffer[256];
+    size_t iSjisBufferSize = sizeof(szSjisBuffer);
+    char* pszOutBuffer = szSjisBuffer;
+    size_t iUtf8TextLen = strlen(pszUtf8Text);
+
+    iconv(hIcd, &pszUtf8Text, &iUtf8TextLen, &pszOutBuffer, &iSjisBufferSize);
+
+    *pszOutBuffer = 0;
+
+    return strdup(szSjisBuffer);
+}
 
 /**
  * These patches force the game to load the game
@@ -18,9 +48,9 @@
 static uint64_t (*SetGameLanguage_original)(uint64_t result);
 static uint64_t SetGameLanguage_hook(uint64_t result)
 {
-    return SetGameLanguage_original(0);
     *(int32_t*)(ED7Pointers.iCurrentLanguage1) = 0;
     *(int32_t*)(ED7Pointers.iCurrentLanguage2) = 0;
+    return SetGameLanguage_original(0);
 }
 
 static int64_t (*GetConsoleDesiredLanguage1_original)(uint64_t a1, uint64_t a2);
@@ -62,34 +92,73 @@ static int64_t GetConsoleDesiredLanguage2_hook()
  * UTF-8.
  */
 
-constexpr size_t zero_string_count = sizeof(ZeroExeStrings) / sizeof(ZeroExeStrings[0]);
-constexpr size_t zero_array_slot_count = sizeof(ZeroExeStrings[0]);
-static_assert(zero_string_count == 1484, "zero_string_count must be 1484");
-
-constexpr size_t azure_string_count = sizeof(AzureExeStrings) / sizeof(AzureExeStrings[0]);
-constexpr size_t azure_array_slot_count = sizeof(AzureExeStrings[0]);
-static_assert(azure_string_count == 3551, "azure_string_count must be 3551");
+constexpr size_t azure_string_count = 3551;
 
 // Big enough for both games
 static const char* NewTranslationTable[azure_string_count * 3];
 
-template<std::size_t size>
-static void SetupEnglishTranslationTable(const char* (&translation_array)[size])
+void ED7ExeText_SetupTranslationTable()
 {
-
-    for(size_t i = 0; i != size; ++i)
+    if(ED7HookCurrentLanguage == ED7HookLanguage::English)
     {
-        for(int j = 0; j != 3; ++j)
-        {
-            NewTranslationTable[ (i * 3) + j ] = translation_array[i];
-        }
-    }
+        InitializeUtf8SjisIconv();
 
-    skyline::inlinehook::ControlledPages control(ED7Pointers.TranslationArray, 1 * sizeof(char*));
-    control.claim();
-    *(const char***)control.rw = NewTranslationTable;
-    control.unclaim();
+        char* pszJsonBuffer;
+        
+        // open file and yolo it without error checking - patch wouldn't work if it errors while reading these files anyways
+        nn::fs::FileHandle hFile;
+        nn::fs::OpenFile(&hFile, "rom:/data_patch/exe_strings.json", nn::fs::OpenMode_Read);
+
+        s64 iSize;
+        nn::fs::GetFileSize(&iSize, hFile);
+        
+        pszJsonBuffer = (char*)malloc(iSize + 1);
+        nn::fs::ReadFile(hFile, 0, pszJsonBuffer, iSize);
+        pszJsonBuffer[iSize] = 0;
+
+        nn::fs::CloseFile(hFile);
+
+        auto jsonExeStrings = nlohmann::json::parse(pszJsonBuffer);
+
+        free(pszJsonBuffer);
+
+        for(auto& [strKey, jsonValue] : jsonExeStrings.items())
+        {
+            int iKey = atoi(strKey.c_str()); // std::stoi does some errno stuff and errno isn't available so it crashes, use atoi instead
+
+            auto jsonString = jsonValue["en"];
+            if(!jsonString.is_string())
+            {
+                jsonString = jsonValue["line"];
+            }
+
+            std::string& strExeString = jsonString.get_ref<std::string&>();
+            char* pszFinalString;
+
+            if(jsonValue["jis"].get<bool>())
+            {
+                pszFinalString = ConvertUtf8ToSjis(strExeString.c_str());
+            }
+            else
+            {
+                pszFinalString = strdup(strExeString.c_str());
+            }
+
+            for(int i = 0; i != 3; ++i)
+            {
+                NewTranslationTable[ (iKey * 3) + i ] = pszFinalString;
+            }
+        }
+
+        skyline::inlinehook::ControlledPages control(ED7Pointers.TranslationArray, 1 * sizeof(char*));
+        control.claim();
+        *(const char***)control.rw = NewTranslationTable;
+        control.unclaim();
+
+        FinalizeUtf8SjisIconv();
+    }
 }
+
 
 // Additional strings that aren't translated between Asian languages
 // Mostly some "engrish" stuff that should be sligthly changed
@@ -184,16 +253,11 @@ void ED7ExeTextInitialize()
     switch(ED7HookCurrentLanguage)
     {
         case ED7HookLanguage::English:
+            // Not needed in Azure
             if(ED7Pointers.IsZero)
             {
-                SetupEnglishTranslationTable(ZeroExeStrings);
+                MAKE_HOOK(CED6Window__SetText);
             }
-            else
-            {
-                SetupEnglishTranslationTable(AzureExeStrings);
-            }
-
-            MAKE_HOOK(CED6Window__SetText);
 
             MAKE_HOOK(AdditionalStrings1);
             MAKE_HOOK(AdditionalStrings2);
