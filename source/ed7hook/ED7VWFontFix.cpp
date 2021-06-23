@@ -160,8 +160,9 @@ short GetWidthForDialogBoxContents(CMessageWindow *_this, const char* text, floa
 
                 if(*text == 'S') // Font size
                 {
+                    constexpr auto vtable_offset = IsZero ? 336LL : 352LL;
                     currentTextWidth =
-                        ((*(int (**)(int64_t *, int64_t, int64_t))(*(int64_t*)(_this) + 336LL))(
+                        ((*(int (**)(int64_t *, int64_t, int64_t))(*(int64_t*)(_this) + vtable_offset))(
                                (int64_t*)(_this),
                                (text[-1] - 48),
                                *(unsigned int *)( ((int64_t*)(_this))[7] + 88LL))) / 2.0;
@@ -354,28 +355,45 @@ float BookGetFontWidth_hook(int64_t a1, int64_t iFontType)
     return result;
 }
 
+bool HookFontHorizontalScale = false;
+
 void (*SaveListFontRender_original)(int64_t *this_, const char *pszText, int color, float posX, float posY, float fUnknown, float fUnknown2, float fUnknown3, float fUnknown4);
+template<bool IsZero>
 void SaveListFontRender_hook(int64_t *this_, const char *pszText, int color, float posX, float posY, float fUnknown, float fUnknown2, float fUnknown3, float fUnknown4)
 {
     if(__builtin_return_address(0) == ED7Pointers.SaveListFontRender_ReturnAfterDescription)
     {
         // Align save description text to the right to prevent overflow
         auto pszTextLoop = pszText;
-        float fCorrectedWidth = 800.0;
+        float fCorrectedXOffset = 800.0;
+        float fSubstractXOffset = 0.0;
+
         constexpr float fFontWidth = 24.0;
         while(char character = *pszTextLoop++)
         {
             if(IsSJISCharMultibyte(character))
             {
-                fCorrectedWidth -= pMultibyteAdvance[character][*pszTextLoop++] * fFontWidth;
+                fSubstractXOffset += pMultibyteAdvance[character][*pszTextLoop++] * fFontWidth;
             }
             else
             {
-                fCorrectedWidth -= pFontAdvanceTable[character] * fFontWidth;
+                fSubstractXOffset += pFontAdvanceTable[character] * fFontWidth;
             }
         }
 
-        SaveListFontRender_original(this_, pszText, color, fCorrectedWidth, posY, fUnknown, fUnknown2, fUnknown3, fUnknown4);
+        if constexpr(!IsZero) // not needed on zero
+        {
+            if(fSubstractXOffset > 380.0)
+            {
+                HookFontHorizontalScale = true;
+                fSubstractXOffset *= 0.9;
+            }
+        }
+
+
+        fCorrectedXOffset -= fSubstractXOffset;
+
+        SaveListFontRender_original(this_, pszText, color, fCorrectedXOffset, posY, fUnknown, fUnknown2, fUnknown3, fUnknown4);
     }
     else
     {
@@ -383,7 +401,36 @@ void SaveListFontRender_hook(int64_t *this_, const char *pszText, int color, flo
     }
 }
 
+int64_t (*CFontMgr__DrawFontClip_original)(int64_t* this_, int a2, int a3, char *a4, int a5, int a6, int a7, int a8, int a9, float a10, float a11, float a12, float a13, int a14);
+int64_t CFontMgr__DrawFontClip_hook(int64_t* this_, int a2, int a3, char *a4, int a5, int a6, int a7, int a8, int a9, float a10, float a11, float a12, float a13, int a14)
+{
+    if(HookFontHorizontalScale)
+    {
+        a13 = 0.9;
+        HookFontHorizontalScale = false;
+    }
+
+    return CFontMgr__DrawFontClip_original(this_, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
+}
+
+void (*DrawFontReport_original)(int64_t *a1, const char *a2, int a3, int a4, char a5, float a6, float a7, float a8);
+void DrawFontReport_hook(int64_t *a1, const char *a2, int a3, int a4, char a5, float a6, float a7, float a8)
+{
+    void* return_address = __builtin_return_address(0);
+    if(return_address == ED7Pointers.DrawFontReport_ReturnDPAmount)
+    {
+        a6 += 4;
+    }
+    else if(return_address == ED7Pointers.DrawFontReport_ReturnDetectiveRank)
+    {
+        a6 += 4;
+        a7 -= 2;
+    }
+    DrawFontReport_original(a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
 int64_t (*NotebookDrawText_original)(int64_t *a1, const char *pszText, int a3, float fOffsetX, float fOffsetY, float a6, float a7);
+template<bool IsZero>
 int64_t NotebookDrawText_hook(int64_t *a1, const char *pszText, int a3, float fOffsetX, float fOffsetY, float a6, float a7)
 {
     void* return_address = __builtin_return_address(0); // lmao
@@ -394,6 +441,21 @@ int64_t NotebookDrawText_hook(int64_t *a1, const char *pszText, int a3, float fO
     if(return_address == ED7Pointers.NotebookDrawText_ReturnAfterCompletedRequestsStr)
     {
         return NotebookDrawText_original(a1, pszText, a3, fOffsetX - 14.5, fOffsetY, a6, a7);
+    }
+    if constexpr(!IsZero)
+    {
+        if(return_address == ED7Pointers.NotebookDrawText_ReturnPrestorySynopsis) // Synopsis
+        {
+            return NotebookDrawText_original(a1, pszText, a3, 206.0, fOffsetY, a6, a7);
+        }
+        if(return_address == ED7Pointers.NotebookDrawText_ReturnPrestoryTerminology) // Terminology
+        {
+            return NotebookDrawText_original(a1, pszText, a3, 190.0, fOffsetY, a6, a7);
+        }
+        if(return_address == ED7Pointers.NotebookDrawText_ReturnPrestoryCharacters) // Characters
+        {
+            return NotebookDrawText_original(a1, pszText, a3, 197.0, fOffsetY, a6, a7);
+        }
     }
     return NotebookDrawText_original(a1, pszText, a3, fOffsetX, fOffsetY, a6, a7);
 }
@@ -427,8 +489,8 @@ int64_t NotebookDrawNumberRightAligned_hook(int64_t *a1, int a2, int a3, unsigne
     return NotebookDrawNumberRightAligned_original(a1, a2, a3, a4, a5, a6, a7, a8, a9);
 }
 
-char* (*SetStoryText_original)(_QWORD *a1, __int16 a2, __int16 a3, int a4, int a5, char *a6, int a7, char a8);
-char* SetStoryText_hook(_QWORD *a1, __int16 a2, __int16 a3, int a4, int a5, char *a6, int a7, char a8)
+char* (*SetStoryText_original)(int64_t *a1, int16_t a2, int16_t a3, int a4, int a5, char *a6, int a7, char a8);
+char* SetStoryText_hook(int64_t *a1, int16_t a2, int16_t a3, int a4, int a5, char *a6, int a7, char a8)
 {
     char* ret = SetStoryText_original(a1, a2, a3, a4, a5, a6, a7, a8);
     void* retAddr = __builtin_return_address(0);
@@ -443,6 +505,16 @@ char* SetStoryText_hook(_QWORD *a1, __int16 a2, __int16 a3, int a4, int a5, char
     return ret;
 }
 
+void (*SupportRequestDrawFont_original)(int64_t *a1, int a2, int a3, int a4, int a5, char *s, int a7, float a8);
+void SupportRequestDrawFont_hook(int64_t *a1, int a2, int a3, int a4, int a5, char *s, int a7, float a8)
+{
+    if(__builtin_return_address(0) == ED7Pointers.SupportRequestDrawFont_ReturnAddr)
+    {
+        a2 -= 10;
+    }
+    SupportRequestDrawFont_original(a1, a2, a3, a4, a5, s, a7, a8);
+}
+
 void ED7VWFontFixInitialize()
 {
     *(void**)&GetItemName = ED7Pointers.GetItemName;
@@ -454,15 +526,13 @@ void ED7VWFontFixInitialize()
         return;
     }
 
-    A64HookFunction(
-        ED7Pointers.CMessageWindow__PrintText,
-        reinterpret_cast<void*>(ED7Pointers.IsZero ? CMessageWindow__PrintText_hook<true> : CMessageWindow__PrintText_hook<false> ),
-        (void**)&CMessageWindow__PrintText_original
-    );
+    MAKE_HOOK_T(CMessageWindow__PrintText);
 
     if(!ED7Pointers.IsZero)
     {
         MAKE_HOOK(SetStoryText);
+        MAKE_HOOK(DrawFontReport);
+        MAKE_HOOK(CFontMgr__DrawFontClip);
     }
 
     MAKE_HOOK(CFontMgr2__SetFixMode);
@@ -470,8 +540,9 @@ void ED7VWFontFixInitialize()
     MAKE_HOOK(BookIsKana);
     MAKE_HOOK(BookGetFontWidth);
     MAKE_HOOK(CMessageWindow__AnonymousText);
-    MAKE_HOOK(SaveListFontRender);
-    MAKE_HOOK(NotebookDrawText);
+    MAKE_HOOK_T(SaveListFontRender);
+    MAKE_HOOK_T(NotebookDrawText);
+    MAKE_HOOK(SupportRequestDrawFont);
     MAKE_HOOK(NotebookElementBarDraw);
     MAKE_HOOK(NotebookDrawNumberRightAligned);
 
@@ -502,6 +573,21 @@ void ED7VWFontFixInitialize()
         control.claim();
         *(short*)control.rw = ED7Pointers.NotebookSpaceCheckNewOffset2;
         control.unclaim();
+
+        static constexpr unsigned char OrbmentChangeViewTextXOffsetW1[4] = {0x01, 0x32, 0x80, 0x52}; // mov w1, #400
+        static constexpr unsigned char OrbmentChangeViewTextXOffsetW9[4] = {0x09, 0x32, 0x80, 0x52}; // mov w9, #400
+
+        sky_memcpy(ED7Pointers.OrbmentChangeViewTextXOffset1, OrbmentChangeViewTextXOffsetW1, 4);
+        sky_memcpy(ED7Pointers.OrbmentChangeViewTextXOffset2, OrbmentChangeViewTextXOffsetW9, 4);
+        sky_memcpy(ED7Pointers.OrbmentChangeViewTextXOffset3, OrbmentChangeViewTextXOffsetW1, 4);
+        sky_memcpy(ED7Pointers.OrbmentChangeViewTextXOffset4, OrbmentChangeViewTextXOffsetW1, 4);
+
+        // Recipe & fishing book
+        static constexpr unsigned char RecipeBookRecipesOwnedNumberOffsetX[4] = {0x41, 0x83, 0x05, 0x11}; // add w1, w26, #352
+        static constexpr unsigned char FishingBookSpeciesCaughtNumberOffsetX[4] = {0x41, 0x9B, 0x05, 0x11}; // add w1, w26, #358
+        sky_memcpy(ED7Pointers.RecipeBookRecipesOwnedNumberOffsetX, RecipeBookRecipesOwnedNumberOffsetX, 4);
+        sky_memcpy(ED7Pointers.FishingBookSpeciesCaughtNumberOffsetX, FishingBookSpeciesCaughtNumberOffsetX, 4);
+
     }
 
     // Change instruction that loads offset X for some Extra Mode Text

@@ -110,6 +110,9 @@ struct ED7Pointers_Struct
     void* NotebookDrawText;
     void* NotebookDrawText_ReturnAfterMonstElemQuestionMark;
     void* NotebookDrawText_ReturnAfterCompletedRequestsStr;
+    void* NotebookDrawText_ReturnPrestorySynopsis;
+    void* NotebookDrawText_ReturnPrestoryTerminology;
+    void* NotebookDrawText_ReturnPrestoryCharacters;
 
     // Alternative design of elemental efficiency bar to fit English text
     void* NotebookElementBarDraw;
@@ -133,6 +136,28 @@ struct ED7Pointers_Struct
     void* SetStoryText_RetTerminology2;
     void* SetStoryText_RetCharacter1;
     void* SetStoryText_RetCharacter2;
+
+    // Change some texts that go out of the screen on Azure
+    void* OrbmentChangeViewTextXOffset1;
+    void* OrbmentChangeViewTextXOffset2;
+    void* OrbmentChangeViewTextXOffset3;
+    void* OrbmentChangeViewTextXOffset4;
+
+    // Shrink save description if too long
+    void* CFontMgr__DrawFontClip;
+
+    // Fix report offsets
+    void* DrawFontReport;
+    void* DrawFontReport_ReturnDetectiveRank;
+    void* DrawFontReport_ReturnDPAmount;
+
+    // Support requests
+    void* SupportRequestDrawFont;
+    void* SupportRequestDrawFont_ReturnAddr;
+
+    // Recipe & Fishing book X offset to align number with the rest
+    void* RecipeBookRecipesOwnedNumberOffsetX;
+    void* FishingBookSpeciesCaughtNumberOffsetX;
 
     // Faster string comparison through constant address
     void* String_PlayTime1; // "%3d:%2d:%2d"

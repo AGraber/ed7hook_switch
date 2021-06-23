@@ -175,6 +175,11 @@ bool ED7PointersInitialize()
 
             ED7Pointers.ExtraMode_RightColumnOffsetX = EXE_PTR(0x1C07A0);
 
+            ED7Pointers.CFontMgr__DrawFontClip = EXE_PTR(0x47580);
+
+            ED7Pointers.SupportRequestDrawFont = EXE_PTR(0x17D990);
+            ED7Pointers.SupportRequestDrawFont_ReturnAddr = EXE_PTR(0x19D294);
+
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x339E02);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x2F7532);
             ED7Pointers.String_EXP = EXE_PTR(0x02FEC3C);
@@ -276,6 +281,10 @@ bool ED7PointersInitialize()
             ED7Pointers.NotebookDrawText_ReturnAfterMonstElemQuestionMark = EXE_PTR(0x19C37C);
             ED7Pointers.NotebookDrawText_ReturnAfterCompletedRequestsStr = EXE_PTR(0x1A695C);
 
+            ED7Pointers.NotebookDrawText_ReturnPrestorySynopsis = EXE_PTR(0x1CC0DC);
+            ED7Pointers.NotebookDrawText_ReturnPrestoryTerminology = EXE_PTR(0x1CC16C);
+            ED7Pointers.NotebookDrawText_ReturnPrestoryCharacters = EXE_PTR(0x1CC1E0);
+
             ED7Pointers.NotebookElementBarDraw = EXE_PTR(0x136140);
             ED7Pointers.NotebookElementBarDraw_ReturnBackground = EXE_PTR(0x19C290);
             ED7Pointers.NotebookElementBarDraw_ReturnBar = EXE_PTR(0x19C32C);
@@ -293,6 +302,23 @@ bool ED7PointersInitialize()
             ED7Pointers.SetStoryText_RetTerminology2 = EXE_PTR(0x1CA468);
             ED7Pointers.SetStoryText_RetCharacter1 = EXE_PTR(0x1CA7EC);
             ED7Pointers.SetStoryText_RetCharacter2 = EXE_PTR(0x1CA5CC);
+
+            ED7Pointers.OrbmentChangeViewTextXOffset1 = EXE_PTR(0x109038);
+            ED7Pointers.OrbmentChangeViewTextXOffset2 = EXE_PTR(0x1C7CC0);
+            ED7Pointers.OrbmentChangeViewTextXOffset3 = EXE_PTR(0x1C7D94);
+            ED7Pointers.OrbmentChangeViewTextXOffset4 = EXE_PTR(0x1C7DD8);
+
+            ED7Pointers.CFontMgr__DrawFontClip = EXE_PTR(0x472E0);
+
+            ED7Pointers.DrawFontReport = EXE_PTR(0x18C450);
+            ED7Pointers.DrawFontReport_ReturnDPAmount = EXE_PTR(0x1AA7B0);
+            ED7Pointers.DrawFontReport_ReturnDetectiveRank = EXE_PTR(0x1AA8F4);
+
+            ED7Pointers.SupportRequestDrawFont = EXE_PTR(0x18BFF0);
+            ED7Pointers.SupportRequestDrawFont_ReturnAddr = EXE_PTR(0x1AB8F0);
+
+            ED7Pointers.RecipeBookRecipesOwnedNumberOffsetX = EXE_PTR(0x12C778);
+            ED7Pointers.FishingBookSpeciesCaughtNumberOffsetX = EXE_PTR(0x163D34);
 
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x3DD672);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x36E721);
