@@ -288,6 +288,12 @@ bool ED7PointersInitialize()
 
             ED7Pointers.ExtraMode_RightColumnOffsetX = EXE_PTR(0x1D5410);
 
+            ED7Pointers.SetStoryText = EXE_PTR(0x1CB870);
+            ED7Pointers.SetStoryText_RetTerminology1 = EXE_PTR(0x1CA890);
+            ED7Pointers.SetStoryText_RetTerminology2 = EXE_PTR(0x1CA468);
+            ED7Pointers.SetStoryText_RetCharacter1 = EXE_PTR(0x1CA7EC);
+            ED7Pointers.SetStoryText_RetCharacter2 = EXE_PTR(0x1CA5CC);
+
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x3DD672);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x36E721);
             ED7Pointers.String_EXP = EXE_PTR(0x37A72B);

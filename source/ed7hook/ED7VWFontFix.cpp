@@ -427,6 +427,22 @@ int64_t NotebookDrawNumberRightAligned_hook(int64_t *a1, int a2, int a3, unsigne
     return NotebookDrawNumberRightAligned_original(a1, a2, a3, a4, a5, a6, a7, a8, a9);
 }
 
+char* (*SetStoryText_original)(_QWORD *a1, __int16 a2, __int16 a3, int a4, int a5, char *a6, int a7, char a8);
+char* SetStoryText_hook(_QWORD *a1, __int16 a2, __int16 a3, int a4, int a5, char *a6, int a7, char a8)
+{
+    char* ret = SetStoryText_original(a1, a2, a3, a4, a5, a6, a7, a8);
+    void* retAddr = __builtin_return_address(0);
+    if(retAddr == ED7Pointers.SetStoryText_RetTerminology1 || retAddr == ED7Pointers.SetStoryText_RetTerminology2) // gordaso 
+    {
+        *(int16_t *)(*((int64_t *)a1 + 7) + 382) = 400;
+    }
+    else if(retAddr == ED7Pointers.SetStoryText_RetCharacter1 || retAddr == ED7Pointers.SetStoryText_RetCharacter2) // personaje
+    {
+        *(int16_t *)(*((int64_t *)a1 + 7) + 382) = 230;
+    }
+    return ret;
+}
+
 void ED7VWFontFixInitialize()
 {
     *(void**)&GetItemName = ED7Pointers.GetItemName;
@@ -443,6 +459,11 @@ void ED7VWFontFixInitialize()
         reinterpret_cast<void*>(ED7Pointers.IsZero ? CMessageWindow__PrintText_hook<true> : CMessageWindow__PrintText_hook<false> ),
         (void**)&CMessageWindow__PrintText_original
     );
+
+    if(!ED7Pointers.IsZero)
+    {
+        MAKE_HOOK(SetStoryText);
+    }
 
     MAKE_HOOK(CFontMgr2__SetFixMode);
     MAKE_HOOK(BookDrawText);

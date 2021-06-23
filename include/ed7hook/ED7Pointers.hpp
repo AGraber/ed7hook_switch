@@ -127,6 +127,13 @@ struct ED7Pointers_Struct
     // Extra menu mode right column text
     void* ExtraMode_RightColumnOffsetX;
 
+    // Azure Prestory window widths
+    void* SetStoryText;
+    void* SetStoryText_RetTerminology1;
+    void* SetStoryText_RetTerminology2;
+    void* SetStoryText_RetCharacter1;
+    void* SetStoryText_RetCharacter2;
+
     // Faster string comparison through constant address
     void* String_PlayTime1; // "%3d:%2d:%2d"
     void* String_PlayTime2; // "PlayTime %2d:%2d:%2d\n"
