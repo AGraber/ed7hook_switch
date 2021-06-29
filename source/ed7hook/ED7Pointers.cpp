@@ -180,6 +180,9 @@ bool ED7PointersInitialize()
             ED7Pointers.SupportRequestDrawFont = EXE_PTR(0x17D990);
             ED7Pointers.SupportRequestDrawFont_ReturnAddr = EXE_PTR(0x19D294);
 
+            ED7Pointers.ShopPriceWindow_NotForSaleOffsetX = EXE_PTR(0x1AFCF4);
+            ED7Pointers.DetectiveNotebookRequestStatus = EXE_PTR(0x1989C8);
+
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x339E02);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x2F7532);
             ED7Pointers.String_EXP = EXE_PTR(0x02FEC3C);
@@ -204,8 +207,6 @@ bool ED7PointersInitialize()
             ED7Pointers.GetLanguageForLanguageCode = EXE_PTR(0x5F490);
             ED7Pointers.CSafeFile__Init = EXE_PTR(0x3FE80);
             break;
-
-        // Azure is still unfinished
 
         case 0x5f200: // Azure 1.0.0 / 1.0.1
             ED7Pointers.GameName = "Trails to Azure 1.0.0-1.0.1";
@@ -319,6 +320,9 @@ bool ED7PointersInitialize()
 
             ED7Pointers.RecipeBookRecipesOwnedNumberOffsetX = EXE_PTR(0x12C778);
             ED7Pointers.FishingBookSpeciesCaughtNumberOffsetX = EXE_PTR(0x163D34);
+
+            ED7Pointers.ShopPriceWindow_NotForSaleOffsetX = EXE_PTR(0x1BFC04);
+            ED7Pointers.DetectiveNotebookRequestStatus = EXE_PTR(0x1A6E3C);
 
             ED7Pointers.String_PlayTime1 = EXE_PTR(0x3DD672);
             ED7Pointers.String_PlayTime2 = EXE_PTR(0x36E721);

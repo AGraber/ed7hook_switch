@@ -159,6 +159,12 @@ struct ED7Pointers_Struct
     void* RecipeBookRecipesOwnedNumberOffsetX;
     void* FishingBookSpeciesCaughtNumberOffsetX;
 
+    // "Not for Sale" text overflow fix
+    void* ShopPriceWindow_NotForSaleOffsetX;
+
+    // Fix request status overlapping with long requests names
+    void* DetectiveNotebookRequestStatus;
+
     // Faster string comparison through constant address
     void* String_PlayTime1; // "%3d:%2d:%2d"
     void* String_PlayTime2; // "PlayTime %2d:%2d:%2d\n"

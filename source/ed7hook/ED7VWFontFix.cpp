@@ -234,18 +234,20 @@ char* CMessageWindow__PrintText_hook(CMessageWindow *_this, char *pszWindowConte
         // being smaller than usual
 
         *(int16_t *)(*((int64_t *)_this + 7) + 358LL) = OriginalFixedWidth;
-        *(int16_t *)(*((int64_t *)_this + 7) + 382) = (OriginalFixedWidth * result * 0.5) * 1.08;
+        *(int16_t *)(*((int64_t *)_this + 7) + 382) = (OriginalFixedWidth * result * 0.5) * 1.13;
         return ret;
     }
 
     auto ret = CMessageWindow__PrintText_original(_this, pszWindowContent, a3, a4);
 
-    auto textBoxWidth = GetWidthForDialogBoxContents<IsZero>(_this, pszWindowContent, _this->pfWidthStuff[26]) + pFontAdvanceTable[' '] * _this->pfWidthStuff[26];
-    auto nameWidth = GetWidthForDialogBoxContents<IsZero>(_this, (char*)( ((int64_t*)(_this))[20] + 1080), _this->pfWidthStuff[26]) + pFontAdvanceTable[' '] * _this->pfWidthStuff[26];
-    if(nameWidth < (_this->pfWidthStuff[26] * 4) ) // Set a minimum in case the dialog box is too small
+    float nameCharacterWidth = _this->pfWidthStuff[26] > 10.0 ? _this->pfWidthStuff[26] : 10.0;
+    auto nameWidth = GetWidthForDialogBoxContents<IsZero>(_this, (char*)( ((int64_t*)(_this))[20] + 1080), nameCharacterWidth) + pFontAdvanceTable[' '] * nameCharacterWidth;
+    if(nameWidth < (nameCharacterWidth * 4) ) // Set a minimum in case the dialog box is too small
     {
-        nameWidth = (_this->pfWidthStuff[26] * 4);
+        nameWidth = (nameCharacterWidth * 4);
     }
+
+    auto textBoxWidth = GetWidthForDialogBoxContents<IsZero>(_this, pszWindowContent, _this->pfWidthStuff[26]) + pFontAdvanceTable[' '] * _this->pfWidthStuff[26];
 
     // Override width
     *(int16_t *)(*((int64_t *)_this + 7) + 382) = nameWidth > textBoxWidth ? nameWidth : textBoxWidth;
@@ -559,6 +561,11 @@ void ED7VWFontFixInitialize()
 
     static constexpr unsigned char ExtraMode_RightColumnOffsetX[4] = {0x56, 0x03, 0x80, 0x52}; // mov w22, #26
 
+    static constexpr unsigned char ShopPriceWindow_NotForSaleOffsetX[4] = {0x00, 0xB0, 0x26, 0x1E}; // FMOV S0, #21.0
+
+    static constexpr unsigned char DetectiveNotebookRequestStatus_w26[4] = {0x48, 0x3F, 0x05, 0x11}; // ADD W8, W26, #335
+    static constexpr unsigned char DetectiveNotebookRequestStatus_w25[4] = {0x28, 0x3F, 0x05, 0x11}; // ADD W8, W25, #335
+
     // Invalidate space check that changes spaces width to another value
     sky_memcpy(ED7Pointers.FontRendererSpaceCheck, SpaceCheckInstructionReplace_w8, 4);
 
@@ -592,4 +599,10 @@ void ED7VWFontFixInitialize()
 
     // Change instruction that loads offset X for some Extra Mode Text
     sky_memcpy(ED7Pointers.ExtraMode_RightColumnOffsetX, ExtraMode_RightColumnOffsetX, 4);
+
+    // Change X offset of "Not for Sale" text
+    sky_memcpy(ED7Pointers.ShopPriceWindow_NotForSaleOffsetX, ShopPriceWindow_NotForSaleOffsetX, 4);
+
+    // Change X offset of request status on detective notebook to prevent overlapping with long request names
+    sky_memcpy(ED7Pointers.DetectiveNotebookRequestStatus, ED7Pointers.IsZero ? DetectiveNotebookRequestStatus_w25 : DetectiveNotebookRequestStatus_w26, 4);
 }
