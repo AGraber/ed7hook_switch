@@ -76,7 +76,7 @@ struct ED7Pointers_Struct
     // but I don't know where. Anyways, patching out those space checks
     // that set them to some fixed-width value wouldn't hurt anyways.
     void* NotebookSpaceCheckJump2;
-    short NotebookSpaceCheckNewOffset2;
+    char NotebookSpaceCheckNewOffset2;
 
     // CPU Boost patches
     void* LoadBattle;
@@ -87,6 +87,7 @@ struct ED7Pointers_Struct
     // Functions that are hooked to replace text
     void* AdditionalStrings1;
     void* AdditionalStrings2;
+    void* AdditionalStrings2_MonsterNameRet;
     void* AdditionalStrings3;
     void* AdditionalStrings4;
 
@@ -150,6 +151,7 @@ struct ED7Pointers_Struct
     void* DrawFontReport;
     void* DrawFontReport_ReturnDetectiveRank;
     void* DrawFontReport_ReturnDPAmount;
+    void* DrawFontReport_ReturnPromotionReward;
 
     // Support requests
     void* SupportRequestDrawFont;
@@ -173,6 +175,7 @@ struct ED7Pointers_Struct
     void* String_Item; // "Item:""
     void* String_Support_Member; // "Support Member"
     void* String_Attack_Member; // "Attack Member"
+    void* String_CarColorFormatting; // "  %s"
 
     // Dynamic GPU clocks
     void* RenderTexture;

@@ -7,6 +7,8 @@
 #include "ed7hook/ED7Main.hpp"
 #include "ed7hook/ED7Pointers.hpp"
 #include "ed7hook/ED7Utils.hpp"
+#include "ed7hook/ED7VWFontFix.hpp"
+#include "ed7hook/ED7Debug.hpp"
 #include "nlohmann/json.hpp"
 
 // iconv provided by NintendoSDK from the game, nice
@@ -179,19 +181,42 @@ static uint64_t AdditionalStrings1_hook(uint64_t a1, const char *a2, uint64_t a3
     return AdditionalStrings1_original(a1, a2, a3, a4);
 }
 
-static uint64_t (*AdditionalStrings2_original)(uint64_t a1, const char *a2, uint64_t a3, uint64_t a4, uint64_t a5, uint64_t a6, uint64_t a7, unsigned int a8);
-static uint64_t AdditionalStrings2_hook(uint64_t a1, const char *a2, uint64_t a3, uint64_t a4, uint64_t a5, uint64_t a6, uint64_t a7, unsigned int a8)
+static uint64_t (*AdditionalStrings2_original)(float a1, float a2, float a3, float a4, float a5, __int64 a6, const char *a7, int a8, int a9, int a10, int a11, unsigned int a12, int a13);
+static uint64_t AdditionalStrings2_hook(float a1, float a2, float a3, float a4, float a5, __int64 a6, const char *a7, int a8, int a9, int a10, int a11, unsigned int a12, int a13)
 {
-    if(a2 == ED7Pointers.String_EXP){
-        return AdditionalStrings2_original(a1, "Exp:", a3, a4, a5, a6, a7, a8);
+    if(a7 == ED7Pointers.String_EXP){
+        a7 = "Exp:";
     }
-    else if(a2 == ED7Pointers.String_Resist){
-        return AdditionalStrings2_original(a1, "Resistances:", a3, a4, a5, a6, a7, a8);
+    else if(a7 == ED7Pointers.String_Resist){
+        a7 = "Resistances:";
     }
-    else if(a2 == ED7Pointers.String_Item){
-        return AdditionalStrings2_original(a1, "Items:", a3, a4, a5, a6, a7, a8);
+    else if(a7 == ED7Pointers.String_Item){
+        a7 = "Items:";
     }
-    return AdditionalStrings2_original(a1, a2, a3, a4, a5, a6, a7, a8);
+    else {
+        void* return_address = __builtin_return_address(0);
+        if(return_address == ED7Pointers.AdditionalStrings2_MonsterNameRet){
+            auto pszTextLoop = a7;
+            float fTextWidth = 0.0;
+            while(char character = *pszTextLoop++)
+            {
+                if(IsSJISCharMultibyte(character))
+                {
+                    fTextWidth += pMultibyteAdvance[character][*pszTextLoop++];
+                }
+                else
+                {
+                    fTextWidth += pFontAdvanceTable[character];
+                }
+            }
+
+            if(fTextWidth > 10.125)
+            {
+                a5 = 0.9;
+            }
+        }
+    }
+    return AdditionalStrings2_original(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13);
 }
 
 static uint64_t (*AdditionalStrings3_original)(uint64_t a1, const char *a2, int a3, int a4, char a5, float a6, float a7);
@@ -207,19 +232,21 @@ static uint64_t AdditionalStrings3_hook(uint64_t a1, const char *a2, int a3, int
 }
 
 static uint64_t AdditionalStrings4_original(char *a1, const char *a2, ...);
+template <bool IsZero>
 static uint64_t AdditionalStrings4_hook(char *a1, const char *a2, ...)
 {
     va_list args;
     va_start(args, a2);
     if(a2 == ED7Pointers.String_PlayTime1){
-        int ret = vsprintf(a1, "%3d:%02d:%02d", args);
-        va_end(args);
-        return ret;
+        a2 = "%3d:%02d:%02d";
     }
     else if(a2 == ED7Pointers.String_PlayTime2){
-        int ret = vsprintf(a1, "PlayTime: %2d:%02d:%02d\n", args);
-        va_end(args);
-        return ret;
+        a2 = "PlayTime: %2d:%02d:%02d\n";
+    }
+    else if constexpr(!IsZero) {
+        if(a2 == ED7Pointers.String_CarColorFormatting){
+            a2 = "\x81\x40%s";
+        }
     }
     int ret = vsprintf(a1, a2, args);
     va_end(args);
@@ -262,7 +289,7 @@ void ED7ExeTextInitialize()
             MAKE_HOOK(AdditionalStrings1);
             MAKE_HOOK(AdditionalStrings2);
             MAKE_HOOK(AdditionalStrings3);
-            MAKE_HOOK(AdditionalStrings4);
+            MAKE_HOOK_T(AdditionalStrings4);
 
             // fall through japanese because we also need
             // some japanese patches like sjis encoding, etc.

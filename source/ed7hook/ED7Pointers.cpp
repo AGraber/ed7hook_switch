@@ -263,6 +263,7 @@ bool ED7PointersInitialize()
 
             ED7Pointers.AdditionalStrings1 = EXE_PTR(0x47380);
             ED7Pointers.AdditionalStrings2 = EXE_PTR(0x17DC10);
+            ED7Pointers.AdditionalStrings2_MonsterNameRet = EXE_PTR(0xF45AC);
             ED7Pointers.AdditionalStrings3 = EXE_PTR(0x18C450);
             ED7Pointers.AdditionalStrings4 = EXE_PTR(0x28A960);
 
@@ -314,6 +315,7 @@ bool ED7PointersInitialize()
             ED7Pointers.DrawFontReport = EXE_PTR(0x18C450);
             ED7Pointers.DrawFontReport_ReturnDPAmount = EXE_PTR(0x1AA7B0);
             ED7Pointers.DrawFontReport_ReturnDetectiveRank = EXE_PTR(0x1AA8F4);
+            ED7Pointers.DrawFontReport_ReturnPromotionReward = EXE_PTR(0x1AAAC0);
 
             ED7Pointers.SupportRequestDrawFont = EXE_PTR(0x18BFF0);
             ED7Pointers.SupportRequestDrawFont_ReturnAddr = EXE_PTR(0x1AB8F0);
@@ -331,6 +333,7 @@ bool ED7PointersInitialize()
             ED7Pointers.String_Item = EXE_PTR(0x3C92C6);
             ED7Pointers.String_Support_Member = EXE_PTR(0x37A789);
             ED7Pointers.String_Attack_Member = EXE_PTR(0x3C92D9);
+            ED7Pointers.String_CarColorFormatting = EXE_PTR(0x3B43F7);
 
             ED7Pointers.RenderTexture = EXE_PTR(0x242FA0);
 

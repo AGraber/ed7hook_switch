@@ -28,13 +28,6 @@
 float FontAdvanceTable[256 - 32];
 float MultibyteAdvance[(0xEF - 0x81) + 1][256];
 
-// fast direct access through character as index
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-constexpr float* pFontAdvanceTable = FontAdvanceTable - 32;
-constexpr auto* pMultibyteAdvance = MultibyteAdvance - 0x81;
-#pragma GCC diagnostic pop
-
 struct CMessageWindow
 {
   char pad[56];
@@ -49,11 +42,6 @@ template<bool IsZero>
 const char* GetItemName_Offset(CMessageWindow* _this, int itemIndex)
 {
     return GetItemName(*(int64_t *)&_this->pad[24] + (IsZero ? 696544 : 711744), itemIndex);
-}
-
-inline bool IsSJISCharMultibyte(unsigned char character)
-{
-    return (character >= 0x81 && character <= 0x9F) || (character >= 0xE0 && character <= 0xEF);
 }
 
 // Cache all the font advance values on initialization
@@ -421,12 +409,16 @@ void DrawFontReport_hook(int64_t *a1, const char *a2, int a3, int a4, char a5, f
     void* return_address = __builtin_return_address(0);
     if(return_address == ED7Pointers.DrawFontReport_ReturnDPAmount)
     {
-        a6 += 4;
+        a6 += 4.0;
     }
     else if(return_address == ED7Pointers.DrawFontReport_ReturnDetectiveRank)
     {
-        a6 += 4;
-        a7 -= 2;
+        a6 += 4.0;
+        a7 -= 2.0;
+    }
+    else if(return_address == ED7Pointers.DrawFontReport_ReturnPromotionReward) // override "centered" value
+    {
+        a6 = 232.0;
     }
     DrawFontReport_original(a1, a2, a3, a4, a5, a6, a7, a8);
 }
@@ -576,9 +568,9 @@ void ED7VWFontFixInitialize()
     if(!ED7Pointers.IsZero)
     {
         // Removes space check messing up font rendering on notebook, again for Azure, on this other function
-        skyline::inlinehook::ControlledPages control( (void*)(ED7Pointers.NotebookSpaceCheckJump2), 1 * sizeof(short));
+        skyline::inlinehook::ControlledPages control( (void*)(ED7Pointers.NotebookSpaceCheckJump2), 1 * sizeof(char));
         control.claim();
-        *(short*)control.rw = ED7Pointers.NotebookSpaceCheckNewOffset2;
+        *(char*)control.rw = ED7Pointers.NotebookSpaceCheckNewOffset2;
         control.unclaim();
 
         static constexpr unsigned char OrbmentChangeViewTextXOffsetW1[4] = {0x01, 0x32, 0x80, 0x52}; // mov w1, #400
